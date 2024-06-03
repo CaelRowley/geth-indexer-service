@@ -17,6 +17,7 @@
 !docker-compose.yml
 
 !Makefile
+!.env.sample
 
 # ...even if they are in subdirectories
 !*/

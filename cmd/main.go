@@ -4,14 +4,23 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	client, err := ethclient.Dial("ws://localhost:3334")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	nodeURL := os.Getenv("NODE_URL")
+
+	client, err := ethclient.Dial(nodeURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to client: %v", err)
 	}
