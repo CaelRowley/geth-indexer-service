@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 )
 
@@ -18,6 +19,46 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	createDB()
+	connectToNode()
+}
+
+func createDB() {
+	dbURL := "postgresql://admin:admin@localhost:5432"
+	conn, err := pgx.Connect(context.Background(), dbURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = createTables(conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func createTables(conn *pgx.Conn) error {
+	dropTable := `DROP TABLE IF EXISTS blocks`
+	_, err := conn.Exec(context.Background(), dropTable)
+	if err != nil {
+		return err
+	}
+
+	createTableQuery := `
+		CREATE TABLE IF NOT EXISTS blocks (
+				id SERIAL PRIMARY KEY,
+				Number BIGINT NOT NULL,
+				Hash TEXT NOT NULL
+		)
+	`
+	_, err = conn.Exec(context.Background(), createTableQuery)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func connectToNode() {
 	nodeURL := os.Getenv("NODE_URL")
 
 	client, err := ethclient.Dial(nodeURL)
