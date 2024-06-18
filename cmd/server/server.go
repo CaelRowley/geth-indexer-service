@@ -10,9 +10,8 @@ import (
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/CaelRowley/geth-indexer-service/pkg/eth"
+	"github.com/CaelRowley/geth-indexer-service/pkg/router"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -25,9 +24,9 @@ type Server struct {
 var port = "8080"
 
 func New() *Server {
-	router := newRouter()
+	router := router.NewRouter()
 
-	conn, err := db.NewConnection(os.Getenv("DB_URL"))
+	dbConn, err := db.NewConnection(os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,7 +38,7 @@ func New() *Server {
 
 	return &Server{
 		router:    router,
-		db:        conn,
+		db:        dbConn,
 		ethClient: ethClient,
 	}
 }
@@ -48,11 +47,6 @@ func (s *Server) Start(ctx context.Context) error {
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: s.router,
-	}
-
-	err := s.db.Ping(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to connect to db: %w", err)
 	}
 
 	defer func() {
@@ -84,17 +78,4 @@ func (s *Server) Start(ctx context.Context) error {
 
 		return server.Shutdown(timeout)
 	}
-}
-
-func newRouter() http.Handler {
-	router := chi.NewRouter()
-
-	router.Use(middleware.RequestID)
-	router.Use(middleware.Logger)
-
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	return router
 }

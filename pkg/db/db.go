@@ -10,7 +10,7 @@ import (
 func NewConnection(url string) (*pgx.Conn, error) {
 	conn, err := pgx.Connect(context.Background(), url)
 	if err != nil {
-		return nil, fmt.Errorf("unable to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to connect to db: %w", err)
 	}
 
 	// TODO: setup migrations for table creation
