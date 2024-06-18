@@ -24,8 +24,6 @@ type Server struct {
 var port = "8080"
 
 func New() *Server {
-	router := router.NewRouter()
-
 	dbConn, err := db.NewConnection(os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatal(err)
@@ -36,11 +34,15 @@ func New() *Server {
 		log.Fatal(err)
 	}
 
-	return &Server{
+	router := router.NewRouter(dbConn)
+
+	server := &Server{
 		router:    router,
 		db:        dbConn,
 		ethClient: ethClient,
 	}
+
+	return server
 }
 
 func (s *Server) Start(ctx context.Context) error {
