@@ -6,19 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/go-chi/chi"
 	"github.com/jackc/pgx/v5"
 )
 
 type Handler struct {
 	dbConn *pgx.Conn
-}
-
-type Block struct {
-	ID     int64  `json:"id"`
-	Number int64  `json:"number"`
-	Hash   string `json:"hash"`
 }
 
 func NewHandler(dbConn *pgx.Conn) *Handler {
@@ -28,15 +24,17 @@ func NewHandler(dbConn *pgx.Conn) *Handler {
 }
 
 func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	number, err := strconv.ParseUint(chi.URLParam(r, "number"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	query := `SELECT id, number, hash FROM blocks WHERE id = $1`
+	block, err := db.GetBlockByNumber(context.Background(), h.dbConn, number)
 
-	var block Block
-
-	err := h.dbConn.QueryRow(context.Background(), query, id).Scan(&block.ID, &block.Number, &block.Hash)
 	if errors.Is(err, pgx.ErrNoRows) {
-		fmt.Println("no block found with id:", id)
+		fmt.Println("no block found with id:", number)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	} else if err != nil {

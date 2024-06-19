@@ -29,5 +29,5 @@ func NewRouter(dbConn *pgx.Conn) http.Handler {
 }
 
 func loadEthRoutes(router chi.Router, h handlers.Handler) {
-	router.Get("/get-block/{id}", h.GetBlock)
+	router.Get("/get-block/{number}", h.GetBlock)
 }
