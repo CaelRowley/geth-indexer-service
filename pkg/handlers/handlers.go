@@ -12,7 +12,7 @@ import (
 )
 
 type Handler struct {
-	db *pgx.Conn
+	dbConn *pgx.Conn
 }
 
 type Block struct {
@@ -21,9 +21,9 @@ type Block struct {
 	Hash   string `json:"hash"`
 }
 
-func NewHandler(db *pgx.Conn) *Handler {
+func NewHandler(dbConn *pgx.Conn) *Handler {
 	return &Handler{
-		db: db,
+		dbConn: dbConn,
 	}
 }
 
@@ -34,7 +34,7 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 
 	var block Block
 
-	err := h.db.QueryRow(context.Background(), query, id).Scan(&block.ID, &block.Number, &block.Hash)
+	err := h.dbConn.QueryRow(context.Background(), query, id).Scan(&block.ID, &block.Number, &block.Hash)
 	if errors.Is(err, pgx.ErrNoRows) {
 		fmt.Println("no block found with id:", id)
 		w.WriteHeader(http.StatusNotFound)

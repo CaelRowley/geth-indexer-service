@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func NewRouter(db *pgx.Conn) http.Handler {
+func NewRouter(dbConn *pgx.Conn) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestID)
@@ -19,7 +19,7 @@ func NewRouter(db *pgx.Conn) http.Handler {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	h := handlers.NewHandler(db)
+	h := handlers.NewHandler(dbConn)
 
 	router.Route("/eth", func(r chi.Router) {
 		loadEthRoutes(r, *h)

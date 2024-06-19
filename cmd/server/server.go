@@ -17,7 +17,7 @@ import (
 
 type Server struct {
 	router    http.Handler
-	db        *pgx.Conn
+	dbConn    *pgx.Conn
 	ethClient *ethclient.Client
 }
 
@@ -38,7 +38,7 @@ func New() *Server {
 
 	server := &Server{
 		router:    router,
-		db:        dbConn,
+		dbConn:    dbConn,
 		ethClient: ethClient,
 	}
 
@@ -52,7 +52,7 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	defer func() {
-		if err := s.db.Close(context.Background()); err != nil {
+		if err := s.dbConn.Close(context.Background()); err != nil {
 			fmt.Println("failed to close db", err)
 		}
 	}()
@@ -67,7 +67,7 @@ func (s *Server) Start(ctx context.Context) error {
 		close(ch)
 	}()
 
-	go eth.StartListener(s.ethClient)
+	go eth.StartListener(s.ethClient, s.dbConn)
 
 	fmt.Println("Server be jammin on port:", port)
 
