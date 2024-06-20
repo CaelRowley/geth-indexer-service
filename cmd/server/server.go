@@ -67,9 +67,10 @@ func (s *Server) Start(ctx context.Context) error {
 		close(ch)
 	}()
 
-	go eth.StartListener(s.ethClient, s.dbConn)
-
 	fmt.Println("Server be jammin on port:", port)
+
+	go eth.StartSyncer(s.ethClient, s.dbConn)
+	go eth.StartListener(s.ethClient, s.dbConn)
 
 	select {
 	case err := <-ch:

@@ -11,5 +11,6 @@ func NewClient(url string) (*ethclient.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Ethereum client: %w", err)
 	}
+
 	return client, nil
 }

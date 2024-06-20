@@ -5,10 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/CaelRowley/geth-indexer-service/pkg/data"
-	"github.com/CaelRowley/geth-indexer-service/pkg/db"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/jackc/pgx/v5"
@@ -29,37 +25,11 @@ func StartListener(client *ethclient.Client, dbConn *pgx.Conn) {
 		case err := <-sub.Err():
 			log.Fatalf("subscription error: %v", err)
 		case header := <-ch:
-			insertBlock(client, dbConn, header.Hash())
+			block, err := client.BlockByHash(context.Background(), header.Hash())
+			if err != nil {
+				log.Fatalf("failed to get block by hash: %v", err)
+			}
+			insertBlock(dbConn, block)
 		}
-	}
-}
-
-func insertBlock(client *ethclient.Client, dbConn *pgx.Conn, blockHash common.Hash) {
-	block, err := client.BlockByHash(context.Background(), blockHash)
-	if err != nil {
-		log.Fatalf("failed to get block by hash: %v", err)
-	}
-
-	newBlock := data.Block{
-		Hash:        block.Hash().Hex(),
-		Number:      block.Number().Uint64(),
-		GasLimit:    block.GasLimit(),
-		GasUsed:     block.GasUsed(),
-		Difficulty:  block.Difficulty().String(),
-		Time:        block.Time(),
-		ParentHash:  block.ParentHash().Hex(),
-		Nonce:       hexutil.EncodeUint64(block.Nonce()),
-		Miner:       block.Coinbase().Hex(),
-		Size:        block.Size(),
-		RootHash:    block.Root().Hex(),
-		UncleHash:   block.UncleHash().Hex(),
-		TxHash:      block.TxHash().Hex(),
-		ReceiptHash: block.ReceiptHash().Hex(),
-		ExtraData:   block.Extra(),
-	}
-
-	err = db.InsertBlock(context.Background(), dbConn, newBlock)
-	if err != nil {
-		log.Fatalf("failed to insert block: %v", err)
 	}
 }
