@@ -7,7 +7,9 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func NewConnection(url string) (*pgx.Conn, error) {
+type DB = *pgx.Conn
+
+func NewConnection(url string) (DB, error) {
 	dbConn, err := pgx.Connect(context.Background(), url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to db: %w", err)
@@ -22,7 +24,7 @@ func NewConnection(url string) (*pgx.Conn, error) {
 	return dbConn, nil
 }
 
-func createTables(dbConn *pgx.Conn) error {
+func createTables(dbConn DB) error {
 	dropTable := `DROP TABLE IF EXISTS blocks`
 	_, err := dbConn.Exec(context.Background(), dropTable)
 	if err != nil {

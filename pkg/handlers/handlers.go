@@ -14,10 +14,10 @@ import (
 )
 
 type Handler struct {
-	dbConn *pgx.Conn
+	dbConn db.DB
 }
 
-func NewHandler(dbConn *pgx.Conn) *Handler {
+func NewHandler(dbConn db.DB) *Handler {
 	return &Handler{
 		dbConn: dbConn,
 	}

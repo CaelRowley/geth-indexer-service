@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/jackc/pgx/v5"
 )
 
-func StartListener(client *ethclient.Client, dbConn *pgx.Conn) {
+func StartListener(client *ethclient.Client, dbConn db.DB) {
 	ch := make(chan *types.Header)
 
 	sub, err := client.SubscribeNewHead(context.Background(), ch)

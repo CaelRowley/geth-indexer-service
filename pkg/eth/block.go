@@ -8,10 +8,9 @@ import (
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/jackc/pgx/v5"
 )
 
-func insertBlock(dbConn *pgx.Conn, block *types.Block) {
+func insertBlock(dbConn db.DB, block *types.Block) {
 	newBlock := data.Block{
 		Hash:        block.Hash().Hex(),
 		Number:      block.Number().Uint64(),

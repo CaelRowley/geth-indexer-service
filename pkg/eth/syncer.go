@@ -6,11 +6,11 @@ import (
 	"log"
 	"math/big"
 
+	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/jackc/pgx/v5"
 )
 
-func StartSyncer(client *ethclient.Client, dbConn *pgx.Conn) {
+func StartSyncer(client *ethclient.Client, dbConn db.DB) {
 	block, err := client.BlockByNumber(context.Background(), nil)
 	if err != nil {
 		log.Fatalf("Failed to retrieve the latest block: %v", err)

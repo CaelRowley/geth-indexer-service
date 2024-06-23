@@ -3,13 +3,13 @@ package router
 import (
 	"net/http"
 
+	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/CaelRowley/geth-indexer-service/pkg/handlers"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/jackc/pgx/v5"
 )
 
-func NewRouter(dbConn *pgx.Conn) http.Handler {
+func NewRouter(dbConn db.DB) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestID)

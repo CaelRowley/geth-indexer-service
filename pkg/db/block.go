@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func GetBlockByNumber(ctx context.Context, dbConn *pgx.Conn, number uint64) (*data.Block, error) {
+func GetBlockByNumber(ctx context.Context, dbConn DB, number uint64) (*data.Block, error) {
 	query := `SELECT * FROM blocks WHERE number = $1`
 
 	var block data.Block
@@ -39,7 +39,7 @@ func GetBlockByNumber(ctx context.Context, dbConn *pgx.Conn, number uint64) (*da
 	return &block, nil
 }
 
-func InsertBlock(ctx context.Context, dbConn *pgx.Conn, block data.Block) error {
+func InsertBlock(ctx context.Context, dbConn DB, block data.Block) error {
 	query := `
 		INSERT INTO blocks (
 			hash, number, gas_limit, gas_used, difficulty, time, parent_hash, nonce, miner, size, root_hash, uncle_hash, tx_hash, receipt_hash, extra_data

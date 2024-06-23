@@ -12,12 +12,11 @@ import (
 	"github.com/CaelRowley/geth-indexer-service/pkg/eth"
 	"github.com/CaelRowley/geth-indexer-service/pkg/router"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/jackc/pgx/v5"
 )
 
 type Server struct {
 	router    http.Handler
-	dbConn    *pgx.Conn
+	dbConn    db.DB
 	ethClient *ethclient.Client
 }
 
