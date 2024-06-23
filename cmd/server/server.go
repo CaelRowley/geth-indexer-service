@@ -51,8 +51,13 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	defer func() {
-		if err := s.dbConn.Close(context.Background()); err != nil {
+		db, err := s.dbConn.DB()
+		if err != nil {
 			fmt.Println("failed to close db", err)
+		}
+		if err := db.Close(); err != nil {
+			fmt.Println("failed to close db", err)
+			return
 		}
 	}()
 

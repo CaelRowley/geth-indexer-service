@@ -3,14 +3,13 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/go-chi/chi"
-	"github.com/jackc/pgx/v5"
+	// "github.com/jackc/pgx/v5"
 )
 
 type Handler struct {
@@ -33,11 +32,12 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 
 	block, err := db.GetBlockByNumber(context.Background(), h.dbConn, number)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		fmt.Println("no block found with id:", number)
-		w.WriteHeader(http.StatusNotFound)
-		return
-	} else if err != nil {
+	// if errors.Is(err, pgx.ErrNoRows) {
+	// 	fmt.Println("no block found with id:", number)
+	// 	w.WriteHeader(http.StatusNotFound)
+	// 	return
+	// } else
+	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
