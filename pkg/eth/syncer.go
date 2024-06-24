@@ -8,24 +8,35 @@ import (
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"gorm.io/gorm"
 )
 
 func StartSyncer(client *ethclient.Client, dbConn db.DB) {
-	block, err := client.BlockByNumber(context.Background(), nil)
+	var nextBlockNumber uint64
+
+	firstBlock, err := db.GetFirstBlock(dbConn)
 	if err != nil {
-		log.Fatalf("Failed to retrieve the latest block: %v", err)
+		if err == gorm.ErrRecordNotFound {
+			block, err := client.BlockByNumber(context.Background(), nil)
+			if err != nil {
+				log.Fatalf("failed to retrieve the latest block from eth client: %v", err)
+			}
+			nextBlockNumber = block.NumberU64()
+		} else {
+			log.Fatalf("failed to retrieve the latest block from db: %v", err)
+		}
+	} else {
+		nextBlockNumber = firstBlock.Number - 1
 	}
 
 	fmt.Println("Syncing blocks...")
-	nextBlockNumber := block.Number()
-	insertBlock(dbConn, block)
 
-	for nextBlockNumber.Uint64() > 0 {
-		nextBlockNumber = new(big.Int).Sub(nextBlockNumber, big.NewInt(1))
-		block, err := client.BlockByNumber(context.Background(), nextBlockNumber)
+	for nextBlockNumber > 0 {
+		block, err := client.BlockByNumber(context.Background(), new(big.Int).SetUint64(nextBlockNumber))
 		if err != nil {
-			log.Fatalf("Failed to retrieve the latest block: %v", err)
+			log.Fatalf("failed to retrieve block number %d: %w", nextBlockNumber, err)
 		}
 		insertBlock(dbConn, block)
+		nextBlockNumber -= 1
 	}
 }

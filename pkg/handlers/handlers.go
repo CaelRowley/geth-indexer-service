@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/go-chi/chi"
-	// "github.com/jackc/pgx/v5"
 )
 
 type Handler struct {
@@ -30,13 +28,7 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	block, err := db.GetBlockByNumber(context.Background(), h.dbConn, number)
-
-	// if errors.Is(err, pgx.ErrNoRows) {
-	// 	fmt.Println("no block found with id:", number)
-	// 	w.WriteHeader(http.StatusNotFound)
-	// 	return
-	// } else
+	block, err := db.GetBlockByNumber(h.dbConn, number)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

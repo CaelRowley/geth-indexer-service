@@ -1,7 +1,6 @@
 package eth
 
 import (
-	"context"
 	"log"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/data"
@@ -29,7 +28,7 @@ func insertBlock(dbConn db.DB, block *types.Block) {
 		ExtraData:   block.Extra(),
 	}
 
-	err := db.InsertBlock(context.Background(), dbConn, newBlock)
+	err := db.InsertBlock(dbConn, newBlock)
 	if err != nil {
 		log.Fatalf("failed to insert block: %v", err)
 	}

@@ -2,7 +2,7 @@ package data
 
 type Block struct {
 	Hash        string `json:"hash" gorm:"column:hash;type:char(66);primaryKey"`
-	Number      uint64 `json:"number" gorm:"column:number;type:numeric;not null;unique"`
+	Number      uint64 `json:"number" gorm:"column:number;type:numeric;not null;unique;index:,sort:asc"`
 	GasLimit    uint64 `json:"gasLimit" gorm:"column:gas_limit;type:numeric;not null"`
 	GasUsed     uint64 `json:"gasUsed" gorm:"column:gas_used;type:numeric;not null"`
 	Difficulty  string `json:"difficulty" gorm:"column:difficulty;type:varchar;not null"`
