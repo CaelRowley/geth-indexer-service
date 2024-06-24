@@ -9,7 +9,7 @@ import (
 func NewClient(url string) (*ethclient.Client, error) {
 	client, err := ethclient.Dial(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to Ethereum client: %w", err)
+		return nil, fmt.Errorf("failed to connect to eth client: %w", err)
 	}
 
 	return client, nil

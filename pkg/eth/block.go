@@ -1,15 +1,13 @@
 package eth
 
 import (
-	"log"
-
 	"github.com/CaelRowley/geth-indexer-service/pkg/data"
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func insertBlock(dbConn db.DB, block *types.Block) {
+func insertBlock(dbConn db.DB, block *types.Block) error {
 	newBlock := data.Block{
 		Hash:        block.Hash().Hex(),
 		Number:      block.Number().Uint64(),
@@ -28,8 +26,5 @@ func insertBlock(dbConn db.DB, block *types.Block) {
 		ExtraData:   block.Extra(),
 	}
 
-	err := db.InsertBlock(dbConn, newBlock)
-	if err != nil {
-		log.Fatalf("failed to insert block: %v", err)
-	}
+	return db.InsertBlock(dbConn, newBlock)
 }

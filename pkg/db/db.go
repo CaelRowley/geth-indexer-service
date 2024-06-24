@@ -18,7 +18,11 @@ func NewConnection(url string) (DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to db: %w", err)
 	}
-	dbConn.AutoMigrate(&data.Block{})
+
+	err = dbConn.AutoMigrate(&data.Block{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to run migration: %w", err)
+	}
 
 	return dbConn, nil
 }

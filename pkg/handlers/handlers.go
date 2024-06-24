@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -23,21 +23,21 @@ func NewHandler(dbConn db.DB) *Handler {
 func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 	number, err := strconv.ParseUint(chi.URLParam(r, "number"), 10, 64)
 	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	block, err := db.GetBlockByNumber(h.dbConn, number)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	jsonData, err := json.Marshal(block)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

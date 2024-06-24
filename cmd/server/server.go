@@ -22,15 +22,15 @@ type Server struct {
 
 var port = "8080"
 
-func New() *Server {
+func New() (*Server, error) {
 	dbConn, err := db.NewConnection(os.Getenv("DB_URL"))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	ethClient, err := eth.NewClient(os.Getenv("NODE_URL"))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	router := router.NewRouter(dbConn)
@@ -41,7 +41,7 @@ func New() *Server {
 		ethClient: ethClient,
 	}
 
-	return server
+	return server, nil
 }
 
 func (s *Server) Start(ctx context.Context) error {
@@ -50,39 +50,51 @@ func (s *Server) Start(ctx context.Context) error {
 		Handler: s.router,
 	}
 
-	defer func() {
-		db, err := s.dbConn.DB()
-		if err != nil {
-			fmt.Println("failed to close db", err)
-		}
-		if err := db.Close(); err != nil {
-			fmt.Println("failed to close db", err)
-			return
-		}
-	}()
-
-	ch := make(chan error, 1)
+	errCh := make(chan error, 1)
 
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			ch <- fmt.Errorf("failed to start server: %w", err)
+			errCh <- fmt.Errorf("failed to start server: %w", err)
 		}
-		close(ch)
+		close(errCh)
+	}()
+
+	go func() {
+		err := eth.StartListener(s.ethClient, s.dbConn)
+		if err != nil {
+			errCh <- fmt.Errorf("failed to start listener: %w", err)
+		}
+	}()
+
+	go func() {
+		err := eth.StartSyncer(s.ethClient, s.dbConn)
+		if err != nil {
+			errCh <- fmt.Errorf("failed to start syncer: %w", err)
+		}
 	}()
 
 	fmt.Println("Server be jammin on port:", port)
 
-	go eth.StartSyncer(s.ethClient, s.dbConn)
-	go eth.StartListener(s.ethClient, s.dbConn)
+	defer func() {
+		db, err := s.dbConn.DB()
+		if err != nil {
+			log.Println("failed to close db:", err)
+			return
+		}
+		if err := db.Close(); err != nil {
+			log.Println("failed to close db:", err)
+			return
+		}
+	}()
 
 	select {
-	case err := <-ch:
+	case err := <-errCh:
 		return err
 	case <-ctx.Done():
-		timeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 
-		return server.Shutdown(timeout)
+		return server.Shutdown(ctxTimeout)
 	}
 }

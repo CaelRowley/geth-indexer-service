@@ -13,16 +13,19 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("failed to load .env file")
+		log.Fatal("failed to load .env file:", err)
 	}
 
-	server := server.New()
+	server, err := server.New()
+	if err != nil {
+		log.Fatal("failed to create server:", err)
+	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	err = server.Start(ctx)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("failed to start server:", err)
 	}
 }
