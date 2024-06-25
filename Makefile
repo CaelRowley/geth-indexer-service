@@ -12,3 +12,9 @@ build:
 run: build
 	docker-compose -f docker-compose.yml up
 	./${BINARY_NAME}
+
+dev:
+	air
+
+dev-sync:
+	air -- -sync
