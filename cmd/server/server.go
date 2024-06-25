@@ -61,25 +61,21 @@ func (s *Server) Start(ctx context.Context) error {
 
 	go func() {
 		log.Println("Server be jammin' on port:", s.port)
-		err := httpServer.ListenAndServe()
-		if err != nil {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			errCh <- fmt.Errorf("failed to start server: %w", err)
 		}
-		close(errCh)
 	}()
 
 	if s.sync {
 		log.Println("Syncing blocks on node with db...")
 		go func() {
-			err := eth.StartListener(s.ethClient, s.dbConn)
-			if err != nil {
+			if err := eth.StartListener(ctx, s.ethClient, s.dbConn); err != nil {
 				errCh <- fmt.Errorf("failed to start listener: %w", err)
 			}
 		}()
 
 		go func() {
-			err := eth.StartSyncer(s.ethClient, s.dbConn)
-			if err != nil {
+			if err := eth.StartSyncer(s.ethClient, s.dbConn); err != nil {
 				errCh <- fmt.Errorf("failed to start syncer: %w", err)
 			}
 		}()
@@ -88,12 +84,11 @@ func (s *Server) Start(ctx context.Context) error {
 	defer func() {
 		db, err := s.dbConn.DB()
 		if err != nil {
-			log.Println("failed to close db:", err)
+			log.Printf("failed to get db connection: %v", err)
 			return
 		}
 		if err := db.Close(); err != nil {
-			log.Println("failed to close db:", err)
-			return
+			log.Printf("failed to close db: %v", err)
 		}
 	}()
 
