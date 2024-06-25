@@ -11,11 +11,11 @@ import (
 )
 
 func NewRouter(dbConn db.DB) http.Handler {
-	router := chi.NewRouter()
+	r := chi.NewRouter()
 
-	router.Use(middleware.RequestID)
-	router.Use(middleware.Logger)
-	router.Use(cors.Handler(cors.Options{
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
@@ -24,20 +24,21 @@ func NewRouter(dbConn db.DB) http.Handler {
 		MaxAge:           300,
 	}))
 
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Welcome to the API"))
 	})
 
 	h := handlers.NewHandler(dbConn)
 
-	router.Route("/eth", func(r chi.Router) {
+	r.Route("/eth", func(r chi.Router) {
 		loadEthRoutes(r, *h)
 	})
 
-	return router
+	return r
 }
 
-func loadEthRoutes(router chi.Router, h handlers.Handler) {
-	router.Get("/get-block/{number}", h.GetBlock)
-	router.Get("/get-blocks", h.GetBlocks)
+func loadEthRoutes(r chi.Router, h handlers.Handler) {
+	r.Get("/get-block/{number}", h.GetBlock)
+	r.Get("/get-blocks", h.GetBlocks)
 }

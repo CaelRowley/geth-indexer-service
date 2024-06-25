@@ -27,7 +27,7 @@ type Server struct {
 	port      string
 }
 
-func New(config ServerConfig) (*Server, error) {
+func New(cfg ServerConfig) (*Server, error) {
 	dbConn, err := db.NewConnection(os.Getenv("DB_URL"))
 	if err != nil {
 		return nil, err
@@ -38,21 +38,21 @@ func New(config ServerConfig) (*Server, error) {
 		return nil, err
 	}
 
-	router := router.NewRouter(dbConn)
+	r := router.NewRouter(dbConn)
 
-	server := &Server{
-		router:    router,
+	s := &Server{
+		router:    r,
 		dbConn:    dbConn,
 		ethClient: ethClient,
-		sync:      config.Sync,
-		port:      config.Port,
+		sync:      cfg.Sync,
+		port:      cfg.Port,
 	}
 
-	return server, nil
+	return s, nil
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	server := &http.Server{
+	httpServer := &http.Server{
 		Addr:    ":" + s.port,
 		Handler: s.router,
 	}
@@ -60,8 +60,8 @@ func (s *Server) Start(ctx context.Context) error {
 	errCh := make(chan error, 1)
 
 	go func() {
-		fmt.Println("Server be jammin on port:", s.port)
-		err := server.ListenAndServe()
+		log.Println("Server be jammin' on port:", s.port)
+		err := httpServer.ListenAndServe()
 		if err != nil {
 			errCh <- fmt.Errorf("failed to start server: %w", err)
 		}
@@ -69,7 +69,7 @@ func (s *Server) Start(ctx context.Context) error {
 	}()
 
 	if s.sync {
-		fmt.Println("Syncing blocks with node...")
+		log.Println("Syncing blocks on node with db...")
 		go func() {
 			err := eth.StartListener(s.ethClient, s.dbConn)
 			if err != nil {
@@ -101,9 +101,9 @@ func (s *Server) Start(ctx context.Context) error {
 	case err := <-errCh:
 		return err
 	case <-ctx.Done():
-		ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 
-		return server.Shutdown(ctxTimeout)
+		return httpServer.Shutdown(timeoutCtx)
 	}
 }

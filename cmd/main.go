@@ -12,26 +12,24 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("failed to load .env file:", err)
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("failed to load .env file: %v", err)
 	}
 
-	var serverConfig server.ServerConfig
-	flag.BoolVar(&serverConfig.Sync, "sync", false, "Sync blocks with node")
-	flag.StringVar(&serverConfig.Port, "port", "8080", "Port where the service will run")
+	var serverCfg server.ServerConfig
+	flag.BoolVar(&serverCfg.Sync, "sync", false, "Sync blocks on node with db")
+	flag.StringVar(&serverCfg.Port, "port", "8080", "Port where the service will run")
 	flag.Parse()
 
-	server, err := server.New(serverConfig)
+	s, err := server.New(serverCfg)
 	if err != nil {
-		log.Fatal("failed to create server:", err)
+		log.Fatalf("failed to create server: %v", err)
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	err = server.Start(ctx)
-	if err != nil {
-		log.Fatal("failed to start server:", err)
+	if err := s.Start(ctx); err != nil {
+		log.Fatalf("failed to start server: %v", err)
 	}
 }

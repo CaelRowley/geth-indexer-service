@@ -19,10 +19,18 @@ func NewConnection(url string) (DB, error) {
 		return nil, fmt.Errorf("failed to connect to db: %w", err)
 	}
 
-	err = dbConn.AutoMigrate(&data.Block{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to run migration: %w", err)
+	if err := runMigrations(dbConn); err != nil {
+		return nil, err
 	}
 
 	return dbConn, nil
+}
+
+func runMigrations(dbConn DB) error {
+	err := dbConn.AutoMigrate(&data.Block{})
+	if err != nil {
+		return fmt.Errorf("failed to run migration: %w", err)
+	}
+
+	return nil
 }
