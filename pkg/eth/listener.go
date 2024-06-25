@@ -18,8 +18,6 @@ func StartListener(client *ethclient.Client, dbConn db.DB) error {
 		return fmt.Errorf("failed to subscribe to head: %w", err)
 	}
 
-	fmt.Println("Listening for new blocks...")
-
 	for {
 		select {
 		case err := <-sub.Err():

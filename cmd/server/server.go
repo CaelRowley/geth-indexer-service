@@ -14,15 +14,20 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
+type ServerConfig struct {
+	Sync bool
+	Port string
+}
+
 type Server struct {
 	router    http.Handler
 	dbConn    db.DB
 	ethClient *ethclient.Client
+	sync      bool
+	port      string
 }
 
-var port = "8080"
-
-func New() (*Server, error) {
+func New(config ServerConfig) (*Server, error) {
 	dbConn, err := db.NewConnection(os.Getenv("DB_URL"))
 	if err != nil {
 		return nil, err
@@ -39,6 +44,8 @@ func New() (*Server, error) {
 		router:    router,
 		dbConn:    dbConn,
 		ethClient: ethClient,
+		sync:      config.Sync,
+		port:      config.Port,
 	}
 
 	return server, nil
@@ -46,13 +53,14 @@ func New() (*Server, error) {
 
 func (s *Server) Start(ctx context.Context) error {
 	server := &http.Server{
-		Addr:    ":" + port,
+		Addr:    ":" + s.port,
 		Handler: s.router,
 	}
 
 	errCh := make(chan error, 1)
 
 	go func() {
+		fmt.Println("Server be jammin on port:", s.port)
 		err := server.ListenAndServe()
 		if err != nil {
 			errCh <- fmt.Errorf("failed to start server: %w", err)
@@ -60,21 +68,22 @@ func (s *Server) Start(ctx context.Context) error {
 		close(errCh)
 	}()
 
-	go func() {
-		err := eth.StartListener(s.ethClient, s.dbConn)
-		if err != nil {
-			errCh <- fmt.Errorf("failed to start listener: %w", err)
-		}
-	}()
+	if s.sync {
+		fmt.Println("Syncing blocks with node...")
+		go func() {
+			err := eth.StartListener(s.ethClient, s.dbConn)
+			if err != nil {
+				errCh <- fmt.Errorf("failed to start listener: %w", err)
+			}
+		}()
 
-	go func() {
-		err := eth.StartSyncer(s.ethClient, s.dbConn)
-		if err != nil {
-			errCh <- fmt.Errorf("failed to start syncer: %w", err)
-		}
-	}()
-
-	fmt.Println("Server be jammin on port:", port)
+		go func() {
+			err := eth.StartSyncer(s.ethClient, s.dbConn)
+			if err != nil {
+				errCh <- fmt.Errorf("failed to start syncer: %w", err)
+			}
+		}()
+	}
 
 	defer func() {
 		db, err := s.dbConn.DB()

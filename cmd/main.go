@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"os/signal"
@@ -16,7 +17,12 @@ func main() {
 		log.Fatal("failed to load .env file:", err)
 	}
 
-	server, err := server.New()
+	var serverConfig server.ServerConfig
+	flag.BoolVar(&serverConfig.Sync, "sync", false, "Sync blocks with node")
+	flag.StringVar(&serverConfig.Port, "port", "8080", "Port where the service will run")
+	flag.Parse()
+
+	server, err := server.New(serverConfig)
 	if err != nil {
 		log.Fatal("failed to create server:", err)
 	}

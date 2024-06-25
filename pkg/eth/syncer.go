@@ -30,8 +30,6 @@ func StartSyncer(client *ethclient.Client, dbConn db.DB) error {
 		nextBlockNumber = firstBlock.Number - 1
 	}
 
-	fmt.Println("Syncing blocks...")
-
 	for nextBlockNumber > 0 {
 		block, err := client.BlockByNumber(context.Background(), new(big.Int).SetUint64(nextBlockNumber))
 		if err != nil {
