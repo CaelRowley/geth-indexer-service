@@ -23,3 +23,12 @@ func GetFirstBlock(dbConn DB) (*data.Block, error) {
 func InsertBlock(dbConn DB, block data.Block) error {
 	return dbConn.Create(&block).Error
 }
+
+func GetBlocks(dbConn DB) ([]*data.Block, error) {
+	var blocks []*data.Block
+	if err := dbConn.Find(&blocks).Error; err != nil {
+		return nil, err
+	}
+
+	return blocks, nil
+}

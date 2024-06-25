@@ -46,3 +46,23 @@ func (h *Handler) GetBlock(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
 }
+
+func (h *Handler) GetBlocks(w http.ResponseWriter, r *http.Request) {
+	blocks, err := db.GetBlocks(h.dbConn)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	jsonData, err := json.Marshal(blocks)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
+}

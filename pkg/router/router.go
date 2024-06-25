@@ -30,4 +30,5 @@ func NewRouter(dbConn db.DB) http.Handler {
 
 func loadEthRoutes(router chi.Router, h handlers.Handler) {
 	router.Get("/get-block/{number}", h.GetBlock)
+	router.Get("/get-blocks", h.GetBlocks)
 }
