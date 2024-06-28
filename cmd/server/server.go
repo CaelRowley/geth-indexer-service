@@ -62,7 +62,7 @@ func (s *Server) Start(ctx context.Context) error {
 	go func() {
 		log.Println("Server be jammin' on port:", s.port)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			errCh <- fmt.Errorf("failed to start server: %w", err)
+			errCh <- fmt.Errorf("http server failed %w", err)
 		}
 	}()
 
@@ -70,13 +70,13 @@ func (s *Server) Start(ctx context.Context) error {
 		log.Println("Syncing blocks on node with db...")
 		go func() {
 			if err := eth.StartListener(ctx, s.ethClient, s.dbConn); err != nil {
-				errCh <- fmt.Errorf("failed to start listener: %w", err)
+				errCh <- fmt.Errorf("listener failed: %w", err)
 			}
 		}()
 
 		go func() {
 			if err := eth.StartSyncer(s.ethClient, s.dbConn); err != nil {
-				errCh <- fmt.Errorf("failed to start syncer: %w", err)
+				errCh <- fmt.Errorf("syncer failed: %w", err)
 			}
 		}()
 	}
