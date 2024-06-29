@@ -5,12 +5,13 @@ import (
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/CaelRowley/geth-indexer-service/pkg/handlers"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 )
 
-func NewRouter(dbConn db.DB) http.Handler {
+func NewRouter(dbConn db.DB, ethClient *ethclient.Client) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -29,7 +30,7 @@ func NewRouter(dbConn db.DB) http.Handler {
 		w.Write([]byte("Welcome to the API"))
 	})
 
-	h := handlers.NewHandler(dbConn)
+	h := handlers.Init(dbConn, ethClient)
 
 	r.Route("/eth", func(r chi.Router) {
 		loadEthRoutes(r, *h)
@@ -38,7 +39,7 @@ func NewRouter(dbConn db.DB) http.Handler {
 	return r
 }
 
-func loadEthRoutes(r chi.Router, h handlers.Handler) {
+func loadEthRoutes(r chi.Router, h handlers.Handlers) {
 	r.Get("/get-block/{number}", h.GetBlock)
 	r.Get("/get-blocks", h.GetBlocks)
 }

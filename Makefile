@@ -1,4 +1,4 @@
-.PHONY: all clean build run db dev dev-sync
+.PHONY: all clean build run db dev dev-sync test
 BINARY_NAME=main
 
 all: clean build
@@ -33,3 +33,6 @@ dev-sync: db
 	--screen.clear_on_rebuild true \
 	--log.main_only true \
  	-- -sync
+
+test:
+	go test -v ./... -count=1
