@@ -25,16 +25,7 @@ func NewRouter(dbConn db.DB, ethClient *ethclient.Client) http.Handler {
 		MaxAge:           300,
 	}))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Welcome to the API"))
-	})
-
-	h := handlers.Init(dbConn, ethClient)
-
-	r.Route("/block", func(r chi.Router) {
-		h.AddBlockHandlers(r)
-	})
+	handlers.Init(dbConn, ethClient, r)
 
 	return r
 }

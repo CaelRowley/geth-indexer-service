@@ -17,7 +17,7 @@ func (h *Handlers) AddBlockHandlers(r chi.Router) {
 func (h *Handlers) GetBlock(w http.ResponseWriter, r *http.Request) error {
 	number, err := strconv.ParseUint(chi.URLParam(r, "number"), 10, 64)
 	if err != nil {
-		return InvalidURLParam(fmt.Sprintf("number: %v", err))
+		return InvalidURLParam(fmt.Errorf("number: %w", err))
 	}
 
 	block, err := db.GetBlockByNumber(h.dbConn, number)

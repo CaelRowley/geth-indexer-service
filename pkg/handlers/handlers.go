@@ -8,6 +8,7 @@ import (
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/go-chi/chi"
 )
 
 type Handlers struct {
@@ -22,11 +23,20 @@ type APIError struct {
 	Msg        any `json:"msg"`
 }
 
-func Init(dbConn db.DB, ethClient *ethclient.Client) *Handlers {
-	return &Handlers{
+func Init(dbConn db.DB, ethClient *ethclient.Client, r *chi.Mux) {
+	handlers := Handlers{
 		dbConn:    dbConn,
 		ethClient: ethClient,
 	}
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Welcome to the API"))
+	})
+
+	r.Route("/block", func(r chi.Router) {
+		handlers.AddBlockHandlers(r)
+	})
 }
 
 func makeHandler(h HandlerFunc) http.HandlerFunc {
@@ -41,7 +51,7 @@ func makeHandler(h HandlerFunc) http.HandlerFunc {
 				}
 				setJSONResponse(w, http.StatusInternalServerError, errResp)
 			}
-			log.Println("HTTP API error", "err", err.Error(), "path", r.URL.Path)
+			log.Println("HTTP API error:", err.Error(), "path:", r.URL.Path)
 			// TODO: setup slog.Error
 		}
 	}
@@ -72,17 +82,20 @@ func NewAPIError(statusCode int, err error) APIError {
 	}
 }
 
-func InvalidJson(msg ...string) APIError {
-	if len(msg) > 0 {
-		return NewAPIError(http.StatusBadRequest, fmt.Errorf("invalid JSON request data", msg[0]))
-	}
-	return NewAPIError(http.StatusBadRequest, fmt.Errorf("invalid JSON request data"))
-}
-
-func InvalidURLParam(msg ...string) APIError {
+func InvalidJson(msg ...error) APIError {
 	var err error
 	if len(msg) > 0 {
-		err = fmt.Errorf("invalid URLParam %v", msg[0])
+		err = fmt.Errorf("invalid JSON request data %v", msg[0])
+	} else {
+		err = fmt.Errorf("invalid JSON request data")
+	}
+	return NewAPIError(http.StatusBadRequest, err)
+}
+
+func InvalidURLParam(msg ...error) APIError {
+	var err error
+	if len(msg) > 0 {
+		err = fmt.Errorf("invalid URLParam %w", msg[0])
 	} else {
 		err = fmt.Errorf("invalid URLParam")
 	}

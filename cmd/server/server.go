@@ -38,10 +38,10 @@ func New(cfg ServerConfig) (*Server, error) {
 		return nil, err
 	}
 
-	r := router.NewRouter(dbConn, ethClient)
+	router := router.NewRouter(dbConn, ethClient)
 
 	s := &Server{
-		router:    r,
+		router:    router,
 		dbConn:    dbConn,
 		ethClient: ethClient,
 		sync:      cfg.Sync,
