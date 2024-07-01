@@ -32,14 +32,9 @@ func NewRouter(dbConn db.DB, ethClient *ethclient.Client) http.Handler {
 
 	h := handlers.Init(dbConn, ethClient)
 
-	r.Route("/eth", func(r chi.Router) {
-		loadEthRoutes(r, *h)
+	r.Route("/block", func(r chi.Router) {
+		h.AddBlockHandlers(r)
 	})
 
 	return r
-}
-
-func loadEthRoutes(r chi.Router, h handlers.Handlers) {
-	r.Get("/get-block/{number}", h.GetBlock)
-	r.Get("/get-blocks", h.GetBlocks)
 }

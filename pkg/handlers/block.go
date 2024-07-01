@@ -1,8 +1,7 @@
 package handlers
 
 import (
-	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -10,49 +9,30 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func (h *Handlers) GetBlock(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) AddBlockHandlers(r chi.Router) {
+	r.Get("/get-block/{number}", makeHandler(h.GetBlock))
+	r.Get("/get-blocks", makeHandler(h.GetBlocks))
+}
+
+func (h *Handlers) GetBlock(w http.ResponseWriter, r *http.Request) error {
 	number, err := strconv.ParseUint(chi.URLParam(r, "number"), 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid number parameter", http.StatusBadRequest)
-		log.Println("invalid number parameter:", err)
-		return
+		return InvalidURLParam(fmt.Sprintf("number: %v", err))
 	}
 
 	block, err := db.GetBlockByNumber(h.dbConn, number)
 	if err != nil {
-		log.Println("failed to get block:", err)
-		http.Error(w, "Failed to get block", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("failed to get block: %w", err)
 	}
 
-	jsonData, err := json.Marshal(block)
-	if err != nil {
-		log.Println("failed to marshal block:", err)
-		http.Error(w, "Failed to serialize block data to JSON", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonData)
+	return setJSONResponse(w, http.StatusOK, block)
 }
 
-func (h *Handlers) GetBlocks(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) GetBlocks(w http.ResponseWriter, r *http.Request) error {
 	blocks, err := db.GetBlocks(h.dbConn)
 	if err != nil {
-		log.Println("failed to get blocks:", err)
-		http.Error(w, "Failed to get blocks", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("failed to get blocks: %w", err)
 	}
 
-	jsonData, err := json.Marshal(blocks)
-	if err != nil {
-		log.Println("failed to marshal blocks:", err)
-		http.Error(w, "Failed to serialize blocks data to JSON", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonData)
+	return setJSONResponse(w, http.StatusOK, blocks)
 }
