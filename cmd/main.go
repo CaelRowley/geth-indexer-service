@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,23 +14,28 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("failed to load .env file: %v", err)
+		slog.Error("failed to load .env file", "err", err)
+		os.Exit(1)
 	}
 
 	var serverCfg server.ServerConfig
-	flag.BoolVar(&serverCfg.Sync, "sync", false, "Sync blocks on node with db")
 	flag.StringVar(&serverCfg.Port, "port", "8080", "Port where the service will run")
+	flag.BoolVar(&serverCfg.Sync, "sync", false, "Sync blocks on node with db")
 	flag.Parse()
+
+	slog.Info("flags set", "Port", serverCfg.Port, "Sync", serverCfg.Sync)
 
 	s, err := server.New(serverCfg)
 	if err != nil {
-		log.Fatalf("failed to create server: %v", err)
+		slog.Error("failed to create server", "err", err)
+		os.Exit(1)
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	if err := s.Start(ctx); err != nil {
-		log.Fatalf("failed to start server: %v", err)
+		slog.Error("failed to start server", "err", err)
+		os.Exit(1)
 	}
 }

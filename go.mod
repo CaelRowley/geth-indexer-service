@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/cors v1.2.1
 	github.com/joho/godotenv v1.5.1
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
 	gorm.io/driver/postgres v1.5.9
 	gorm.io/gorm v1.25.10
 )

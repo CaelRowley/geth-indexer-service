@@ -3,7 +3,7 @@ package eth
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -25,10 +25,10 @@ func StartListener(ctx context.Context, client *ethclient.Client, dbConn db.DB) 
 			return fmt.Errorf("subscription error: %w", err) // TODO: add retry logic
 		case header := <-headerCh:
 			if err := processHeader(ctx, client, dbConn, header); err != nil {
-				log.Printf("failed to process header: %v", err)
+				slog.Error("failed to process header", "err", err)
 			}
 		case <-ctx.Done():
-			log.Println("Listener stopped")
+			slog.Info("listener stopped")
 			return nil
 		}
 	}

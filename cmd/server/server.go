@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/CaelRowley/geth-indexer-service/pkg/eth"
 	"github.com/CaelRowley/geth-indexer-service/pkg/router"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"golang.org/x/exp/slog"
 )
 
 type ServerConfig struct {
@@ -57,17 +57,17 @@ func (s *Server) Start(ctx context.Context) error {
 		Handler: s.router,
 	}
 
-	errCh := make(chan error, 1)
+	errCh := make(chan error)
 
 	go func() {
-		log.Println("Server be jammin' on port:", s.port)
+		slog.Info("server be jammin' on", "port", s.port)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			errCh <- fmt.Errorf("http server failed %w", err)
 		}
 	}()
 
 	if s.sync {
-		log.Println("Syncing blocks on node with db...")
+		slog.Info("syncing blocks on node with db...")
 		go func() {
 			if err := eth.StartListener(ctx, s.ethClient, s.dbConn); err != nil {
 				errCh <- fmt.Errorf("listener failed: %w", err)
@@ -84,11 +84,11 @@ func (s *Server) Start(ctx context.Context) error {
 	defer func() {
 		db, err := s.dbConn.DB()
 		if err != nil {
-			log.Printf("failed to get db connection: %v", err)
+			slog.Error("failed to get db connection", "err", err)
 			return
 		}
 		if err := db.Close(); err != nil {
-			log.Printf("failed to close db: %v", err)
+			slog.Error("failed to close db", "err", err)
 		}
 	}()
 

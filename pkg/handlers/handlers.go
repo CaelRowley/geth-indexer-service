@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
@@ -51,8 +51,7 @@ func makeHandler(h HandlerFunc) http.HandlerFunc {
 				}
 				setJSONResponse(w, http.StatusInternalServerError, errResp)
 			}
-			log.Println("HTTP API error:", err.Error(), "path:", r.URL.Path)
-			// TODO: setup slog.Error
+			slog.Error("HTTP API error", "err", err, "path", r.URL.Path)
 		}
 	}
 }
@@ -65,7 +64,6 @@ func setJSONResponse(w http.ResponseWriter, code int, v any) error {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-
 	w.Write(data)
 
 	return nil

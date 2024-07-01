@@ -3,7 +3,7 @@ package eth
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"math/big"
 	"time"
 
@@ -33,12 +33,12 @@ func StartSyncer(client *ethclient.Client, dbConn db.DB) error {
 	for nextBlockNumber > 0 {
 		block, err := client.BlockByNumber(context.Background(), new(big.Int).SetUint64(nextBlockNumber))
 		if err != nil {
-			log.Printf("failed to get block by number %d: %v\n", nextBlockNumber, err)
+			slog.Error("failed to get block", "number", nextBlockNumber, "err", err)
 			time.Sleep(500 * time.Millisecond)
 		}
 		err = insertBlock(dbConn, block)
 		if err != nil {
-			log.Printf("failed to insert block: number %d: %v\n", block.NumberU64(), err)
+			slog.Error("failed to insert block", "number", block.NumberU64(), "err", err)
 			time.Sleep(500 * time.Millisecond)
 		}
 		nextBlockNumber -= 1
