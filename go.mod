@@ -3,6 +3,7 @@ module github.com/CaelRowley/geth-indexer-service
 go 1.22.3
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/ethereum/go-ethereum v1.14.3
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/cors v1.2.1

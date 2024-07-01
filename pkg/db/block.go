@@ -2,9 +2,10 @@ package db
 
 import (
 	"github.com/CaelRowley/geth-indexer-service/pkg/data"
+	"gorm.io/gorm"
 )
 
-func GetBlockByNumber(dbConn DB, number uint64) (*data.Block, error) {
+func GetBlockByNumber(dbConn *gorm.DB, number uint64) (*data.Block, error) {
 	var block data.Block
 	if err := dbConn.First(&block, "number = ?", number).Error; err != nil {
 		return nil, err
