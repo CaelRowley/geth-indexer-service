@@ -29,10 +29,7 @@ func Init(dbConn db.DB, ethClient *ethclient.Client, r *chi.Mux) {
 		ethClient: ethClient,
 	}
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Welcome to the API"))
-	})
+	r.Get("/", handlers.healthCheckHandler)
 
 	r.Route("/block", func(r chi.Router) {
 		handlers.AddBlockHandlers(r)
@@ -105,4 +102,9 @@ func InvalidRequestData(errors map[string]string) APIError {
 		StatusCode: http.StatusUnprocessableEntity,
 		Msg:        errors,
 	}
+}
+
+func (h Handlers) healthCheckHandler(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Healthy!"))
 }

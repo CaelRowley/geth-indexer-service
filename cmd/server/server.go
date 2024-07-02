@@ -9,6 +9,7 @@ import (
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/CaelRowley/geth-indexer-service/pkg/eth"
+	"github.com/CaelRowley/geth-indexer-service/pkg/handlers"
 	"github.com/CaelRowley/geth-indexer-service/pkg/router"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"golang.org/x/exp/slog"
@@ -39,6 +40,7 @@ func New(cfg ServerConfig) (*Server, error) {
 	}
 
 	router := router.NewRouter(dbConn, ethClient)
+	handlers.Init(dbConn, ethClient, router)
 
 	s := &Server{
 		router:    router,
