@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -15,9 +16,7 @@ type mockDB struct {
 
 func newMockDB(t *testing.T) mockDB {
 	sqlDB, sqlmock, err := sqlmock.New()
-	if err != nil {
-		t.Errorf("failed to create sqlmock %v", err)
-	}
+	assert.NoError(t, err)
 
 	dialector := postgres.New(postgres.Config{
 		DSN:                  "sqlmock_db_0",
@@ -26,9 +25,7 @@ func newMockDB(t *testing.T) mockDB {
 		PreferSimpleProtocol: true,
 	})
 	dbConn, err := gorm.Open(dialector, &gorm.Config{})
-	if err != nil {
-		t.Errorf("failed to open gorm v2 db, got error: %v", err)
-	}
+	assert.NoError(t, err)
 
 	return mockDB{
 		dbConn:  dbConn,
@@ -39,9 +36,7 @@ func newMockDB(t *testing.T) mockDB {
 func TestRunMigrations(t *testing.T) {
 	mDB := newMockDB(t)
 	db, err := mDB.dbConn.DB()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	defer db.Close()
 
 	mDB.sqlmock.ExpectQuery(`^SELECT count\(\*\) FROM information_schema\.tables WHERE table_schema = CURRENT_SCHEMA\(\) AND table_name = \$1 AND table_type = \$2$`).
@@ -51,10 +46,8 @@ func TestRunMigrations(t *testing.T) {
 	mDB.sqlmock.ExpectExec(`^CREATE INDEX IF NOT EXISTS "idx_blocks_number" ON "blocks" \("number" asc\)`).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err = runMigrations(mDB.dbConn)
-	if err != nil {
-		t.Fatalf("Error running migrations: %v", err)
-	}
-	if err := mDB.sqlmock.ExpectationsWereMet(); err != nil {
-		t.Errorf("Unfulfilled expectations: %s", err)
-	}
+	assert.NoError(t, err)
+
+	err = mDB.sqlmock.ExpectationsWereMet()
+	assert.NoError(t, err)
 }

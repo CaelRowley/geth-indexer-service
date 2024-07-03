@@ -5,6 +5,10 @@ import (
 	"gorm.io/gorm"
 )
 
+func InsertBlock(dbConn DB, block data.Block) error {
+	return dbConn.Create(&block).Error
+}
+
 func GetBlockByNumber(dbConn *gorm.DB, number uint64) (*data.Block, error) {
 	var block data.Block
 	if err := dbConn.First(&block, "number = ?", number).Error; err != nil {
@@ -21,15 +25,10 @@ func GetFirstBlock(dbConn DB) (*data.Block, error) {
 	return &block, nil
 }
 
-func InsertBlock(dbConn DB, block data.Block) error {
-	return dbConn.Create(&block).Error
-}
-
 func GetBlocks(dbConn DB) ([]*data.Block, error) {
 	var blocks []*data.Block
 	if err := dbConn.Find(&blocks).Error; err != nil {
 		return nil, err
 	}
-
 	return blocks, nil
 }

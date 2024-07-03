@@ -15,20 +15,16 @@ func TestChiRouter(t *testing.T) {
 
 	req, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
-
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
-
 	assert.Equal(t, http.StatusOK, rr.Code)
 
 	methods := []string{"POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"}
 	for _, method := range methods {
 		req, err := http.NewRequest(method, "/", nil)
 		assert.NoError(t, err)
-
 		rr = httptest.NewRecorder()
 		router.ServeHTTP(rr, req)
-
 		assert.NotEqual(t, http.StatusOK, rr.Code)
 	}
 }
