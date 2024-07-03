@@ -1,13 +1,12 @@
 package router
 
 import (
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 )
 
-func NewRouter(ethClient *ethclient.Client) *chi.Mux {
+func NewRouter() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)

@@ -8,17 +8,16 @@ import (
 	"time"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"gorm.io/gorm"
 )
 
-func StartSyncer(client *ethclient.Client, dbConn db.DB) error {
+func (c EthClient) StartSyncer(dbConn db.DB) error {
 	var nextBlockNumber uint64
 
 	firstBlock, err := dbConn.GetFirstBlock()
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			block, err := client.BlockByNumber(context.Background(), nil)
+			block, err := c.BlockByNumber(context.Background(), nil)
 			if err != nil {
 				return fmt.Errorf("failed to retrieve the latest block from eth client: %w", err)
 			}
@@ -31,7 +30,7 @@ func StartSyncer(client *ethclient.Client, dbConn db.DB) error {
 	}
 
 	for nextBlockNumber > 0 {
-		block, err := client.BlockByNumber(context.Background(), new(big.Int).SetUint64(nextBlockNumber))
+		block, err := c.BlockByNumber(context.Background(), new(big.Int).SetUint64(nextBlockNumber))
 		if err != nil {
 			slog.Error("failed to get block", "number", nextBlockNumber, "err", err)
 			time.Sleep(500 * time.Millisecond)

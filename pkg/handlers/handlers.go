@@ -7,13 +7,13 @@ import (
 	"net/http"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
-	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/CaelRowley/geth-indexer-service/pkg/eth"
 	"github.com/go-chi/chi"
 )
 
 type Handlers struct {
 	dbConn    db.DB
-	ethClient *ethclient.Client
+	ethClient eth.Client
 }
 
 type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
@@ -23,7 +23,7 @@ type APIError struct {
 	Msg        any `json:"msg"`
 }
 
-func Init(dbConn db.DB, ethClient *ethclient.Client, r *chi.Mux) {
+func Init(dbConn db.DB, ethClient eth.Client, r *chi.Mux) {
 	h := Handlers{
 		dbConn:    dbConn,
 		ethClient: ethClient,

@@ -9,8 +9,8 @@ import (
 )
 
 type DB interface {
-	InsertBlock(block data.Block) error
-	GetBlockByNumber(number uint64) (*data.Block, error)
+	InsertBlock(data.Block) error
+	GetBlockByNumber(uint64) (*data.Block, error)
 	GetFirstBlock() (*data.Block, error)
 	GetBlocks() ([]*data.Block, error)
 	Close() error

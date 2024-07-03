@@ -11,7 +11,6 @@ import (
 	"github.com/CaelRowley/geth-indexer-service/pkg/eth"
 	"github.com/CaelRowley/geth-indexer-service/pkg/handlers"
 	"github.com/CaelRowley/geth-indexer-service/pkg/router"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"golang.org/x/exp/slog"
 )
 
@@ -23,7 +22,7 @@ type ServerConfig struct {
 type Server struct {
 	router    http.Handler
 	dbConn    db.DB
-	ethClient *ethclient.Client
+	ethClient eth.Client
 	sync      bool
 	port      string
 }
@@ -39,7 +38,7 @@ func New(cfg ServerConfig) (*Server, error) {
 		return nil, err
 	}
 
-	router := router.NewRouter(ethClient)
+	router := router.NewRouter()
 	handlers.Init(dbConn, ethClient, router)
 
 	s := &Server{
@@ -71,13 +70,13 @@ func (s *Server) Start(ctx context.Context) error {
 	if s.sync {
 		slog.Info("syncing blocks on node with db...")
 		go func() {
-			if err := eth.StartListener(ctx, s.ethClient, s.dbConn); err != nil {
+			if err := s.ethClient.StartListener(ctx, s.dbConn); err != nil {
 				errCh <- fmt.Errorf("listener failed: %w", err)
 			}
 		}()
 
 		go func() {
-			if err := eth.StartSyncer(s.ethClient, s.dbConn); err != nil {
+			if err := s.ethClient.StartSyncer(s.dbConn); err != nil {
 				errCh <- fmt.Errorf("syncer failed: %w", err)
 			}
 		}()
