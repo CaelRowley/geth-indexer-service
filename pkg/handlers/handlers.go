@@ -24,15 +24,16 @@ type APIError struct {
 }
 
 func Init(dbConn db.DB, ethClient *ethclient.Client, r *chi.Mux) {
-	handlers := Handlers{
+	h := Handlers{
 		dbConn:    dbConn,
 		ethClient: ethClient,
 	}
 
-	r.Get("/", handlers.healthCheckHandler)
+	r.Get("/", h.healthCheckHandler)
 
 	r.Route("/block", func(r chi.Router) {
-		handlers.AddBlockHandlers(r)
+		r.Get("/get-block/{number}", makeHandler(h.GetBlock))
+		r.Get("/get-blocks", makeHandler(h.GetBlocks))
 	})
 }
 

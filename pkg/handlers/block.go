@@ -8,11 +8,6 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func (h *Handlers) AddBlockHandlers(r chi.Router) {
-	r.Get("/get-block/{number}", makeHandler(h.GetBlock))
-	r.Get("/get-blocks", makeHandler(h.GetBlocks))
-}
-
 func (h *Handlers) GetBlock(w http.ResponseWriter, r *http.Request) error {
 	number, err := strconv.ParseUint(chi.URLParam(r, "number"), 10, 64)
 	if err != nil {

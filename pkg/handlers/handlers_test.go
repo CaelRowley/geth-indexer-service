@@ -63,21 +63,6 @@ func TestHealthCheckHandler(t *testing.T) {
 	assert.Equal(t, "Healthy!", string(b))
 }
 
-func TestHealthCheckHandlerRR(t *testing.T) {
-	rr := httptest.NewRecorder()
-	req, err := http.NewRequest(http.MethodGet, "/", nil)
-	assert.NoError(t, err)
-
-	handlers.healthCheckHandler(rr, req)
-
-	defer rr.Result().Body.Close()
-	b, err := io.ReadAll(rr.Result().Body)
-	assert.NoError(t, err)
-
-	assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
-	assert.Equal(t, "Healthy!", string(b))
-}
-
 func TestSetJSONResponse(t *testing.T) {
 	rr := httptest.NewRecorder()
 	data := map[string]string{"message": "test"}
@@ -92,10 +77,10 @@ func TestSetJSONResponse(t *testing.T) {
 }
 
 func TestAPIError(t *testing.T) {
-	err := NewAPIError(http.StatusNotFound, fmt.Errorf("not found"))
-	assert.Equal(t, "api error: 404", err.Error())
-	assert.Equal(t, http.StatusNotFound, err.StatusCode)
-	assert.Equal(t, "not found", err.Msg)
+	apiErr := NewAPIError(http.StatusNotFound, fmt.Errorf("not found"))
+	assert.Equal(t, "api error: 404", apiErr.Error())
+	assert.Equal(t, http.StatusNotFound, apiErr.StatusCode)
+	assert.Equal(t, "not found", apiErr.Msg)
 
 	invalidJSONErr := InvalidJson(fmt.Errorf("err"))
 	assert.Equal(t, "invalid JSON request data err", invalidJSONErr.Msg)
