@@ -77,24 +77,12 @@ func NewAPIError(statusCode int, err error) APIError {
 	}
 }
 
-func InvalidJson(msg ...error) APIError {
-	var err error
-	if len(msg) > 0 {
-		err = fmt.Errorf("invalid JSON request data %v", msg[0])
-	} else {
-		err = fmt.Errorf("invalid JSON request data")
-	}
-	return NewAPIError(http.StatusBadRequest, err)
+func InvalidJson(err error) APIError {
+	return NewAPIError(http.StatusBadRequest, fmt.Errorf("invalid JSON request data %w", err))
 }
 
-func InvalidURLParam(msg ...error) APIError {
-	var err error
-	if len(msg) > 0 {
-		err = fmt.Errorf("invalid URLParam %w", msg[0])
-	} else {
-		err = fmt.Errorf("invalid URLParam")
-	}
-	return NewAPIError(http.StatusBadRequest, err)
+func InvalidURLParam(err error) APIError {
+	return NewAPIError(http.StatusBadRequest, fmt.Errorf("invalid URLParam %w", err))
 }
 
 func InvalidRequestData(errors map[string]string) APIError {

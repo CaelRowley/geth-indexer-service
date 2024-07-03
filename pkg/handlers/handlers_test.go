@@ -97,15 +97,15 @@ func TestAPIError(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, err.StatusCode)
 	assert.Equal(t, "not found", err.Msg)
 
-	invalidJSONErr := InvalidJson()
-	assert.Equal(t, "invalid JSON request data", invalidJSONErr.Msg)
+	invalidJSONErr := InvalidJson(fmt.Errorf("err"))
+	assert.Equal(t, "invalid JSON request data err", invalidJSONErr.Msg)
 	assert.Equal(t, http.StatusBadRequest, invalidJSONErr.StatusCode)
 
-	invalidURLParamErr := InvalidURLParam()
-	assert.Equal(t, "invalid URLParam", invalidURLParamErr.Msg)
+	invalidURLParamErr := InvalidURLParam(fmt.Errorf("param"))
+	assert.Equal(t, "invalid URLParam param", invalidURLParamErr.Msg)
 	assert.Equal(t, http.StatusBadRequest, invalidURLParamErr.StatusCode)
 
-	invalidRequestDataErr := InvalidRequestData(map[string]string{"field": "error"})
-	assert.Equal(t, map[string]string{"field": "error"}, invalidRequestDataErr.Msg)
+	invalidRequestDataErr := InvalidRequestData(map[string]string{"field": "error", "msg": "test"})
+	assert.Equal(t, map[string]string{"field": "error", "msg": "test"}, invalidRequestDataErr.Msg)
 	assert.Equal(t, http.StatusUnprocessableEntity, invalidRequestDataErr.StatusCode)
 }
