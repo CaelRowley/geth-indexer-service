@@ -1,14 +1,13 @@
 package router
 
 import (
-	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 )
 
-func NewRouter(dbConn db.DB, ethClient *ethclient.Client) *chi.Mux {
+func NewRouter(ethClient *ethclient.Client) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)

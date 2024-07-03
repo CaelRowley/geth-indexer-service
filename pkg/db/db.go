@@ -8,10 +8,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type DB = *gorm.DB
+type DB interface {
+	InsertBlock(block data.Block) error
+	GetBlockByNumber(number uint64) (*data.Block, error)
+	GetFirstBlock() (*data.Block, error)
+	GetBlocks() ([]*data.Block, error)
+	Close() error
+}
+
+type GormDB struct {
+	*gorm.DB
+}
 
 func NewConnection(url string) (DB, error) {
-	dbConn, err := gorm.Open(postgres.Open(url),
+	db, err := gorm.Open(postgres.Open(url),
 		&gorm.Config{
 			SkipDefaultTransaction: true,
 		})
@@ -19,15 +29,23 @@ func NewConnection(url string) (DB, error) {
 		return nil, fmt.Errorf("failed to connect to db: %w", err)
 	}
 
-	if err := runMigrations(dbConn); err != nil {
+	if err := runMigrations(db); err != nil {
 		return nil, err
 	}
 
-	return dbConn, nil
+	return &GormDB{db}, nil
 }
 
-func runMigrations(dbConn DB) error {
-	err := dbConn.AutoMigrate(&data.Block{})
+func (g *GormDB) Close() error {
+	db, err := g.DB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get db connection: %w", err)
+	}
+	return db.Close()
+}
+
+func runMigrations(g *gorm.DB) error {
+	err := g.AutoMigrate(&data.Block{})
 	if err != nil {
 		return fmt.Errorf("failed to run migration: %w", err)
 	}

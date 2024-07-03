@@ -2,32 +2,31 @@ package db
 
 import (
 	"github.com/CaelRowley/geth-indexer-service/pkg/data"
-	"gorm.io/gorm"
 )
 
-func InsertBlock(dbConn DB, block data.Block) error {
-	return dbConn.Create(&block).Error
+func (g *GormDB) InsertBlock(block data.Block) error {
+	return g.Create(&block).Error
 }
 
-func GetBlockByNumber(dbConn *gorm.DB, number uint64) (*data.Block, error) {
+func (g *GormDB) GetBlockByNumber(number uint64) (*data.Block, error) {
 	var block data.Block
-	if err := dbConn.First(&block, "number = ?", number).Error; err != nil {
+	if err := g.First(&block, "number = ?", number).Error; err != nil {
 		return nil, err
 	}
 	return &block, nil
 }
 
-func GetFirstBlock(dbConn DB) (*data.Block, error) {
+func (g *GormDB) GetFirstBlock() (*data.Block, error) {
 	var block data.Block
-	if err := dbConn.Order("number asc").First(&block).Error; err != nil {
+	if err := g.Order("number asc").First(&block).Error; err != nil {
 		return nil, err
 	}
 	return &block, nil
 }
 
-func GetBlocks(dbConn DB) ([]*data.Block, error) {
+func (g *GormDB) GetBlocks() ([]*data.Block, error) {
 	var blocks []*data.Block
-	if err := dbConn.Find(&blocks).Error; err != nil {
+	if err := g.Find(&blocks).Error; err != nil {
 		return nil, err
 	}
 	return blocks, nil

@@ -15,7 +15,7 @@ import (
 func StartSyncer(client *ethclient.Client, dbConn db.DB) error {
 	var nextBlockNumber uint64
 
-	firstBlock, err := db.GetFirstBlock(dbConn)
+	firstBlock, err := dbConn.GetFirstBlock()
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			block, err := client.BlockByNumber(context.Background(), nil)

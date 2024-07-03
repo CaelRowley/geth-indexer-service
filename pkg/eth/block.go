@@ -26,5 +26,5 @@ func insertBlock(dbConn db.DB, block *types.Block) error {
 		ExtraData:   block.Extra(),
 	}
 
-	return db.InsertBlock(dbConn, newBlock)
+	return dbConn.InsertBlock(newBlock)
 }

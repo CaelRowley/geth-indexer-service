@@ -10,7 +10,7 @@ import (
 )
 
 func TestChiRouter(t *testing.T) {
-	router := NewRouter(nil, nil)
+	router := NewRouter(nil)
 	handlers.Init(nil, nil, router)
 
 	req, err := http.NewRequest("GET", "/", nil)

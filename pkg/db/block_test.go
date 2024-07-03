@@ -47,10 +47,10 @@ var mockBlocks = []data.Block{
 }
 
 func TestInsertBlock(t *testing.T) {
-	mDB := newMockDB(t)
+	s := newSuite(t)
 
-	mDB.sqlmock.ExpectBegin()
-	mDB.sqlmock.ExpectExec(regexp.QuoteMeta(
+	s.sqlMock.ExpectBegin()
+	s.sqlMock.ExpectExec(regexp.QuoteMeta(
 		`INSERT INTO "blocks" ("hash","number","gas_limit","gas_used","difficulty","time","parent_hash","nonce","miner","size","root_hash","uncle_hash","tx_hash","receipt_hash","extra_data") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`)).
 		WithArgs(
 			mockBlocks[0].Hash, mockBlocks[0].Number, mockBlocks[0].GasLimit, mockBlocks[0].GasUsed, mockBlocks[0].Difficulty,
@@ -58,17 +58,17 @@ func TestInsertBlock(t *testing.T) {
 			mockBlocks[0].RootHash, mockBlocks[0].UncleHash, mockBlocks[0].TxHash, mockBlocks[0].ReceiptHash, mockBlocks[0].ExtraData,
 		).
 		WillReturnResult(sqlmock.NewResult(1, 1))
-	mDB.sqlmock.ExpectCommit()
+	s.sqlMock.ExpectCommit()
 
-	err := InsertBlock(mDB.dbConn, mockBlocks[0])
+	err := s.dbMock.InsertBlock(mockBlocks[0])
 	assert.NoError(t, err)
-	assert.NoError(t, mDB.sqlmock.ExpectationsWereMet())
+	assert.NoError(t, s.sqlMock.ExpectationsWereMet())
 }
 
 func TestGetBlockByNumber(t *testing.T) {
-	mDB := newMockDB(t)
+	s := newSuite(t)
 
-	mDB.sqlmock.ExpectQuery(regexp.QuoteMeta(
+	s.sqlMock.ExpectQuery(regexp.QuoteMeta(
 		`SELECT * FROM "blocks" WHERE number = $1 ORDER BY "blocks"."hash" LIMIT $2`)).
 		WithArgs(mockBlocks[0].Number, 1).
 		WillReturnRows(sqlmock.NewRows([]string{
@@ -81,16 +81,16 @@ func TestGetBlockByNumber(t *testing.T) {
 			mockBlocks[0].RootHash, mockBlocks[0].UncleHash, mockBlocks[0].TxHash, mockBlocks[0].ReceiptHash, mockBlocks[0].ExtraData,
 		))
 
-	retrievedBlock, err := GetBlockByNumber(mDB.dbConn, mockBlocks[0].Number)
+	retrievedBlock, err := s.dbMock.GetBlockByNumber(mockBlocks[0].Number)
 	assert.NoError(t, err)
 	assert.Equal(t, &mockBlocks[0], retrievedBlock)
-	assert.NoError(t, mDB.sqlmock.ExpectationsWereMet())
+	assert.NoError(t, s.sqlMock.ExpectationsWereMet())
 }
 
 func TestGetFirstBlock(t *testing.T) {
-	mDB := newMockDB(t)
+	s := newSuite(t)
 
-	mDB.sqlmock.ExpectQuery(regexp.QuoteMeta(
+	s.sqlMock.ExpectQuery(regexp.QuoteMeta(
 		`SELECT * FROM "blocks" ORDER BY number asc,"blocks"."hash" LIMIT $1`)).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"hash", "number", "gas_limit", "gas_used", "difficulty", "time",
@@ -102,16 +102,16 @@ func TestGetFirstBlock(t *testing.T) {
 			mockBlocks[0].RootHash, mockBlocks[0].UncleHash, mockBlocks[0].TxHash, mockBlocks[0].ReceiptHash, mockBlocks[0].ExtraData,
 		))
 
-	retrievedBlock, err := GetFirstBlock(mDB.dbConn)
+	retrievedBlock, err := s.dbMock.GetFirstBlock()
 	assert.NoError(t, err)
 	assert.Equal(t, &mockBlocks[0], retrievedBlock)
-	assert.NoError(t, mDB.sqlmock.ExpectationsWereMet())
+	assert.NoError(t, s.sqlMock.ExpectationsWereMet())
 }
 
 func TestGetBlocks(t *testing.T) {
-	mDB := newMockDB(t)
+	s := newSuite(t)
 
-	mDB.sqlmock.ExpectQuery(regexp.QuoteMeta(
+	s.sqlMock.ExpectQuery(regexp.QuoteMeta(
 		`SELECT * FROM "blocks"`)).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"hash", "number", "gas_limit", "gas_used", "difficulty", "time",
@@ -127,11 +127,11 @@ func TestGetBlocks(t *testing.T) {
 			mockBlocks[1].RootHash, mockBlocks[1].UncleHash, mockBlocks[1].TxHash, mockBlocks[1].ReceiptHash, mockBlocks[1].ExtraData,
 		))
 
-	retrievedBlocks, err := GetBlocks(mDB.dbConn)
+	retrievedBlocks, err := s.dbMock.GetBlocks()
 	assert.NoError(t, err)
 	assert.Len(t, retrievedBlocks, len(mockBlocks))
 	for i, retrievedBlock := range retrievedBlocks {
 		assert.Equal(t, &mockBlocks[i], retrievedBlock)
 	}
-	assert.NoError(t, mDB.sqlmock.ExpectationsWereMet())
+	assert.NoError(t, s.sqlMock.ExpectationsWereMet())
 }

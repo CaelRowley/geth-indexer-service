@@ -39,7 +39,7 @@ func New(cfg ServerConfig) (*Server, error) {
 		return nil, err
 	}
 
-	router := router.NewRouter(dbConn, ethClient)
+	router := router.NewRouter(ethClient)
 	handlers.Init(dbConn, ethClient, router)
 
 	s := &Server{
@@ -84,12 +84,7 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	defer func() {
-		db, err := s.dbConn.DB()
-		if err != nil {
-			slog.Error("failed to get db connection", "err", err)
-			return
-		}
-		if err := db.Close(); err != nil {
+		if err := s.dbConn.Close(); err != nil {
 			slog.Error("failed to close db", "err", err)
 		}
 	}()

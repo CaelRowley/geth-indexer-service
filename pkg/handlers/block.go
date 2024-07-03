@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/go-chi/chi"
 )
 
@@ -20,7 +19,7 @@ func (h *Handlers) GetBlock(w http.ResponseWriter, r *http.Request) error {
 		return InvalidURLParam(fmt.Errorf("number: %w", err))
 	}
 
-	block, err := db.GetBlockByNumber(h.dbConn, number)
+	block, err := h.dbConn.GetBlockByNumber(number)
 	if err != nil {
 		return fmt.Errorf("failed to get block: %w", err)
 	}
@@ -29,7 +28,7 @@ func (h *Handlers) GetBlock(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handlers) GetBlocks(w http.ResponseWriter, r *http.Request) error {
-	blocks, err := db.GetBlocks(h.dbConn)
+	blocks, err := h.dbConn.GetBlocks()
 	if err != nil {
 		return fmt.Errorf("failed to get blocks: %w", err)
 	}
