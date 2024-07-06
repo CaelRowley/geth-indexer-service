@@ -33,7 +33,7 @@ func (k *KafkaPubSub) StartConsumer() error {
 
 		switch e := ev.(type) {
 		case *kafka.Message:
-			if e.TopicPartition.Topic == &blocksTopic {
+			if *e.TopicPartition.Topic == blocksTopic {
 				if err := k.ConsumeBlock(e); err != nil {
 					slog.Error("failed to consume block message", "err", err)
 				}
