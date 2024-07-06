@@ -1,17 +1,19 @@
 # EVM Indexer
 
-A work-in-progress EVM indexer and block explorer written in go. The project aims to sync blockchain data onto a PostgreSQL database and provide search and analytics using Elasticsearch.
+A work-in-progress EVM indexer and block explorer written in Go. The project aims to sync blockchain data onto a PostgreSQL database using Kafka and provide search and analytics using Elasticsearch.
 
 ## Environment Variables
 
 - **DB_URL**: _The URL connection to a PostgreSQL database server._
-  
+
 - **NODE_URL**: _WebSocket connection to Ethereum node._
+
+- **MSG_BROKER_URL**: _The url to a Kafka broker_
 
 ## Flags
 
 - **port**: _Specifies the port number where the service will run. Default is 8080. Use this flag to define a custom port for the service._
-  
+
 - **sync**: _Enables block synchronization with the node's database. By default, synchronization is turned off (false). Use this flag to initiate synchronization of blockchain data into the PostgreSQL database._
 
 ## Getting Started
@@ -54,6 +56,3 @@ docker-compose -f docker-compose.yml up
 | tx_hash       | char(66)  |           | Hash of all transaction hashes in this block.                                          |
 | receipt_hash  | char(66)  |           | Hash of the receipts of all transactions in this block.                                |
 | extra_data    | bytea     |           | Additional binary data associated with the block.                                      |
-
-
-
