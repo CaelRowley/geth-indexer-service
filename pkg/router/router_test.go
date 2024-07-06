@@ -11,7 +11,7 @@ import (
 
 func TestChiRouter(t *testing.T) {
 	router := NewRouter()
-	handlers.Init(nil, nil, router)
+	handlers.Init(nil, router)
 
 	req, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
