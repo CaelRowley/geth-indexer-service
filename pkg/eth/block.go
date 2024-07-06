@@ -30,7 +30,7 @@ func (c EthClient) publishBlock(block *types.Block) error {
 	if err != nil {
 		return err
 	}
-	if err := c.PubSub.PublishBlock(blockData); err != nil {
+	if err := c.PubSub.GetPublisher().PublishBlock(blockData); err != nil {
 		return err
 	}
 	return nil

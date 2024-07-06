@@ -1,12 +1,9 @@
 package pubsub
 
 import (
-	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 var (
@@ -14,37 +11,37 @@ var (
 )
 
 type PubSub interface {
-	PublishBlock([]byte) error
-	ConsumeBlock(*kafka.Message) error
-	StartProducerEventLoop()
-	StartConsumerPoll(context.Context) error
+	GetPublisher() Publisher
+	GetSubscriber() Subscriber
 	Close() error
 }
 
-type KafkaPubSub struct {
-	Producer *kafka.Producer
-	Consumer *kafka.Consumer
-	dbConn   db.DB
+type Broker struct {
+	Publisher
+	Subscriber
 }
 
 func NewPubSub(url string, dbConn db.DB) (PubSub, error) {
-	p, err := NewProducer(url)
+	p, err := NewPublisher(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kafka producer: %w", err)
 	}
-	c, err := NewConsumer(url)
+	s, err := NewSubscriber(url, dbConn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kafka consumer: %w", err)
 	}
-	return &KafkaPubSub{p, c, dbConn}, nil
+	return &Broker{p, s}, nil
 }
 
-func (k *KafkaPubSub) Close() error {
-	i := k.Producer.Flush(10000)
-	for i > 0 {
-		slog.Info("flushing kafka messages...", "remaining:", i)
-		i = k.Producer.Flush(10000)
-	}
-	k.Producer.Close()
-	return k.Consumer.Close()
+func (b *Broker) GetPublisher() Publisher {
+	return b.Publisher
+}
+
+func (b *Broker) GetSubscriber() Subscriber {
+	return b.Subscriber
+}
+
+func (b *Broker) Close() error {
+	b.Publisher.Close()
+	return b.Subscriber.Close()
 }

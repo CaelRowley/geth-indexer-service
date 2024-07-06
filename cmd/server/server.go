@@ -91,11 +91,11 @@ func (s *Server) Start(ctx context.Context) error {
 		go func() {
 			wg.Add(1)
 			defer wg.Done()
-			if err := s.pubsub.StartConsumerPoll(ctx); err != nil {
+			if err := s.pubsub.GetSubscriber().StartPoll(ctx); err != nil {
 				errCh <- fmt.Errorf("consumer failed: %w", err)
 			}
 		}()
-		go s.pubsub.StartProducerEventLoop()
+		go s.pubsub.GetPublisher().StartEventHandler()
 	}
 
 	defer func() {

@@ -7,21 +7,36 @@ import (
 	"log/slog"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/data"
+	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
-func NewConsumer(url string) (*kafka.Consumer, error) {
-	return kafka.NewConsumer(&kafka.ConfigMap{
+type Subscriber interface {
+	StartPoll(context.Context) error
+	Close() error
+}
+
+type KafkaConsumer struct {
+	*kafka.Consumer
+	dbConn db.DB
+}
+
+func NewSubscriber(url string, dbConn db.DB) (Subscriber, error) {
+	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":        url,
 		"group.id":                 "evmIndexer",
 		"session.timeout.ms":       6000,
 		"auto.offset.reset":        "earliest",
 		"enable.auto.offset.store": false,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return &KafkaConsumer{c, dbConn}, nil
 }
 
-func (k *KafkaPubSub) StartConsumerPoll(ctx context.Context) error {
-	if err := k.Consumer.SubscribeTopics([]string{blocksTopic}, nil); err != nil {
+func (c *KafkaConsumer) StartPoll(ctx context.Context) error {
+	if err := c.Consumer.SubscribeTopics([]string{blocksTopic}, nil); err != nil {
 		return fmt.Errorf("failed to subscribe to kafka topics: %w", err)
 	}
 	for {
@@ -30,14 +45,14 @@ func (k *KafkaPubSub) StartConsumerPoll(ctx context.Context) error {
 			slog.Info("kafka consumer stopped")
 			return nil
 		default:
-			ev := k.Consumer.Poll(100)
+			ev := c.Consumer.Poll(100)
 			if ev == nil {
 				continue
 			}
 			switch e := ev.(type) {
 			case *kafka.Message:
 				if *e.TopicPartition.Topic == blocksTopic {
-					if err := k.ConsumeBlock(e); err != nil {
+					if err := c.handleBlock(e); err != nil {
 						slog.Error("failed to consume block message", "err", err)
 					}
 				}
@@ -51,15 +66,19 @@ func (k *KafkaPubSub) StartConsumerPoll(ctx context.Context) error {
 	}
 }
 
-func (k *KafkaPubSub) ConsumeBlock(m *kafka.Message) error {
+func (c *KafkaConsumer) Close() error {
+	return c.Consumer.Close()
+}
+
+func (c *KafkaConsumer) handleBlock(m *kafka.Message) error {
 	var block data.Block
 	if err := json.Unmarshal(m.Value, &block); err != nil {
 		return fmt.Errorf("failed to unmarshal block data: %w", err)
 	}
-	if err := k.dbConn.InsertBlock(block); err != nil {
+	if err := c.dbConn.InsertBlock(block); err != nil {
 		return fmt.Errorf("failed to store block in db: %w", err)
 	}
-	if _, err := k.Consumer.StoreMessage(m); err != nil {
+	if _, err := c.Consumer.StoreMessage(m); err != nil {
 		return fmt.Errorf("failed to store kafka offset after message: %w", err)
 	}
 	return nil
