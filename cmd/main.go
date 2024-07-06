@@ -38,4 +38,5 @@ func main() {
 		slog.Error("failed to start server", "err", err)
 		os.Exit(1)
 	}
+	slog.Info("server stopped")
 }

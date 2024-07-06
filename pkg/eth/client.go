@@ -10,8 +10,9 @@ import (
 )
 
 type Client interface {
-	StartSyncer(db.DB) error
+	StartSyncer(context.Context, db.DB) error
 	StartListener(context.Context, db.DB) error
+	Close()
 }
 
 type EthClient struct {
@@ -24,6 +25,9 @@ func NewClient(url string, pubsub pubsub.PubSub) (Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to eth client: %w", err)
 	}
-
 	return &EthClient{client, pubsub}, nil
+}
+
+func (c EthClient) Close() {
+	c.Client.Close()
 }

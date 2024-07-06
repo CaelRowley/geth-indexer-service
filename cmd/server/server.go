@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
@@ -34,17 +35,14 @@ func New(cfg ServerConfig) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	pubsubClient, err := pubsub.NewPubSub(os.Getenv("MSG_BROKER_URL"), dbConn)
 	if err != nil {
 		return nil, err
 	}
-
 	ethClient, err := eth.NewClient(os.Getenv("NODE_URL"), pubsubClient)
 	if err != nil {
 		return nil, err
 	}
-
 	router := router.NewRouter()
 	handlers.Init(dbConn, router)
 
@@ -56,7 +54,6 @@ func New(cfg ServerConfig) (*Server, error) {
 		sync:      cfg.Sync,
 		port:      cfg.Port,
 	}
-
 	return s, nil
 }
 
@@ -65,8 +62,8 @@ func (s *Server) Start(ctx context.Context) error {
 		Addr:    ":" + s.port,
 		Handler: s.router,
 	}
-
 	errCh := make(chan error)
+	var wg sync.WaitGroup
 
 	go func() {
 		slog.Info("server be jammin' on", "port", s.port)
@@ -76,27 +73,36 @@ func (s *Server) Start(ctx context.Context) error {
 	}()
 
 	if s.sync {
-		slog.Info("syncing blocks on node with db...")
+		slog.Info("starting sync with eth node...")
 		go func() {
+			wg.Add(1)
+			defer wg.Done()
 			if err := s.ethClient.StartListener(ctx, s.dbConn); err != nil {
 				errCh <- fmt.Errorf("listener failed: %w", err)
 			}
 		}()
-
 		go func() {
-			if err := s.ethClient.StartSyncer(s.dbConn); err != nil {
+			wg.Add(1)
+			defer wg.Done()
+			if err := s.ethClient.StartSyncer(ctx, s.dbConn); err != nil {
 				errCh <- fmt.Errorf("syncer failed: %w", err)
 			}
 		}()
-
 		go func() {
-			if err := s.pubsub.StartConsumer(); err != nil {
+			wg.Add(1)
+			defer wg.Done()
+			if err := s.pubsub.StartConsumerPoll(ctx); err != nil {
 				errCh <- fmt.Errorf("consumer failed: %w", err)
 			}
 		}()
+		go s.pubsub.StartProducerEventLoop()
 	}
 
 	defer func() {
+		if err := s.pubsub.Close(); err != nil {
+			slog.Error("failed to close pubsub", "err", err)
+		}
+		s.ethClient.Close()
 		if err := s.dbConn.Close(); err != nil {
 			slog.Error("failed to close db", "err", err)
 		}
@@ -106,9 +112,9 @@ func (s *Server) Start(ctx context.Context) error {
 	case err := <-errCh:
 		return err
 	case <-ctx.Done():
+		wg.Wait()
 		timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
-
 		return httpServer.Shutdown(timeoutCtx)
 	}
 }

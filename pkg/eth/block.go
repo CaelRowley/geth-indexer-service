@@ -2,7 +2,6 @@ package eth
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/data"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -27,15 +26,12 @@ func (c EthClient) publishBlock(block *types.Block) error {
 		ReceiptHash: block.ReceiptHash().Hex(),
 		ExtraData:   block.Extra(),
 	}
-
 	blockData, err := json.Marshal(newBlock)
 	if err != nil {
-		return fmt.Errorf("failed to serialize block data: %w", err)
+		return err
 	}
-
 	if err := c.PubSub.PublishBlock(blockData); err != nil {
-		return fmt.Errorf("failed to publish block: %w", err)
+		return err
 	}
-
 	return nil
 }

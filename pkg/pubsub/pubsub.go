@@ -1,7 +1,9 @@
 package pubsub
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -14,7 +16,9 @@ var (
 type PubSub interface {
 	PublishBlock([]byte) error
 	ConsumeBlock(*kafka.Message) error
-	StartConsumer() error
+	StartProducerEventLoop()
+	StartConsumerPoll(context.Context) error
+	Close() error
 }
 
 type KafkaPubSub struct {
@@ -33,4 +37,14 @@ func NewPubSub(url string, dbConn db.DB) (PubSub, error) {
 		return nil, fmt.Errorf("failed to create kafka consumer: %w", err)
 	}
 	return &KafkaPubSub{p, c, dbConn}, nil
+}
+
+func (k *KafkaPubSub) Close() error {
+	i := k.Producer.Flush(10000)
+	for i > 0 {
+		slog.Info("flushing kafka messages...", "remaining:", i)
+		i = k.Producer.Flush(10000)
+	}
+	k.Producer.Close()
+	return k.Consumer.Close()
 }
