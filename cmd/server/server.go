@@ -10,6 +10,7 @@ import (
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/CaelRowley/geth-indexer-service/pkg/eth"
 	"github.com/CaelRowley/geth-indexer-service/pkg/handlers"
+	"github.com/CaelRowley/geth-indexer-service/pkg/pubsub"
 	"github.com/CaelRowley/geth-indexer-service/pkg/router"
 	"golang.org/x/exp/slog"
 )
@@ -23,6 +24,7 @@ type Server struct {
 	router    http.Handler
 	dbConn    db.DB
 	ethClient eth.Client
+	pubsub    pubsub.PubSub
 	sync      bool
 	port      string
 }
@@ -33,18 +35,24 @@ func New(cfg ServerConfig) (*Server, error) {
 		return nil, err
 	}
 
-	ethClient, err := eth.NewClient(os.Getenv("NODE_URL"))
+	pubsubClient, err := pubsub.NewPubSub(os.Getenv("MSG_BROKER_URL"), dbConn)
+	if err != nil {
+		return nil, err
+	}
+
+	ethClient, err := eth.NewClient(os.Getenv("NODE_URL"), pubsubClient)
 	if err != nil {
 		return nil, err
 	}
 
 	router := router.NewRouter()
-	handlers.Init(dbConn, ethClient, router)
+	handlers.Init(dbConn, router)
 
 	s := &Server{
 		router:    router,
 		dbConn:    dbConn,
 		ethClient: ethClient,
+		pubsub:    pubsubClient,
 		sync:      cfg.Sync,
 		port:      cfg.Port,
 	}
@@ -78,6 +86,12 @@ func (s *Server) Start(ctx context.Context) error {
 		go func() {
 			if err := s.ethClient.StartSyncer(s.dbConn); err != nil {
 				errCh <- fmt.Errorf("syncer failed: %w", err)
+			}
+		}()
+
+		go func() {
+			if err := s.pubsub.StartConsumer(); err != nil {
+				errCh <- fmt.Errorf("consumer failed: %w", err)
 			}
 		}()
 	}

@@ -1,13 +1,15 @@
 package eth
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/CaelRowley/geth-indexer-service/pkg/data"
-	"github.com/CaelRowley/geth-indexer-service/pkg/db"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func insertBlock(dbConn db.DB, block *types.Block) error {
+func (c EthClient) publishBlock(block *types.Block) error {
 	newBlock := data.Block{
 		Hash:        block.Hash().Hex(),
 		Number:      block.Number().Uint64(),
@@ -26,5 +28,14 @@ func insertBlock(dbConn db.DB, block *types.Block) error {
 		ExtraData:   block.Extra(),
 	}
 
-	return dbConn.InsertBlock(newBlock)
+	blockData, err := json.Marshal(newBlock)
+	if err != nil {
+		return fmt.Errorf("failed to serialize block data: %w", err)
+	}
+
+	if err := c.PubSub.PublishBlock(blockData); err != nil {
+		return fmt.Errorf("failed to publish block: %w", err)
+	}
+
+	return nil
 }

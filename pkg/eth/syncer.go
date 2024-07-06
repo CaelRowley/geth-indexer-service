@@ -32,14 +32,49 @@ func (c EthClient) StartSyncer(dbConn db.DB) error {
 	for nextBlockNumber > 0 {
 		block, err := c.BlockByNumber(context.Background(), new(big.Int).SetUint64(nextBlockNumber))
 		if err != nil {
-			slog.Error("failed to get block", "number", nextBlockNumber, "err", err)
-			time.Sleep(500 * time.Millisecond)
+			slog.Error("syncer failed to get block", "number", nextBlockNumber, "err", err)
+			time.Sleep(100 * time.Millisecond)
+			continue
 		}
-		err = insertBlock(dbConn, block)
+
+		err = c.publishBlock(block)
 		if err != nil {
-			slog.Error("failed to insert block", "number", block.NumberU64(), "err", err)
-			time.Sleep(500 * time.Millisecond)
+			slog.Error("syncer failed to publish block", "number", nextBlockNumber, "err", err)
+			time.Sleep(100 * time.Millisecond)
+			continue
 		}
+
+		// newBlock := data.Block{
+		// 	Hash:        block.Hash().Hex(),
+		// 	Number:      block.Number().Uint64(),
+		// 	GasLimit:    block.GasLimit(),
+		// 	GasUsed:     block.GasUsed(),
+		// 	Difficulty:  block.Difficulty().String(),
+		// 	Time:        block.Time(),
+		// 	ParentHash:  block.ParentHash().Hex(),
+		// 	Nonce:       hexutil.EncodeUint64(block.Nonce()),
+		// 	Miner:       block.Coinbase().Hex(),
+		// 	Size:        block.Size(),
+		// 	RootHash:    block.Root().Hex(),
+		// 	UncleHash:   block.UncleHash().Hex(),
+		// 	TxHash:      block.TxHash().Hex(),
+		// 	ReceiptHash: block.ReceiptHash().Hex(),
+		// 	ExtraData:   block.Extra(),
+		// }
+
+		// blockData, err := json.Marshal(newBlock)
+		// if err != nil {
+		// 	slog.Error("failed to serialize block data", "err", err)
+		// 	time.Sleep(100 * time.Millisecond)
+		// 	continue
+		// }
+
+		// if err := c.PubSub.PublishBlock(blockData); err != nil {
+		// 	slog.Error("failed to publish block", "err", err)
+		// 	time.Sleep(100 * time.Millisecond)
+		// 	continue
+		// }
+
 		nextBlockNumber -= 1
 	}
 

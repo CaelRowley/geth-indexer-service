@@ -12,8 +12,7 @@ import (
 )
 
 var handlers = Handlers{
-	dbConn:    nil,
-	ethClient: nil,
+	dbConn: nil,
 }
 
 func TestMakeHandlerAPIErr(t *testing.T) {

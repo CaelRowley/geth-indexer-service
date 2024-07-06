@@ -7,13 +7,11 @@ import (
 	"net/http"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
-	"github.com/CaelRowley/geth-indexer-service/pkg/eth"
 	"github.com/go-chi/chi"
 )
 
 type Handlers struct {
-	dbConn    db.DB
-	ethClient eth.Client
+	dbConn db.DB
 }
 
 type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
@@ -23,10 +21,9 @@ type APIError struct {
 	Msg        any `json:"msg"`
 }
 
-func Init(dbConn db.DB, ethClient eth.Client, r *chi.Mux) {
+func Init(dbConn db.DB, r *chi.Mux) {
 	h := Handlers{
-		dbConn:    dbConn,
-		ethClient: ethClient,
+		dbConn: dbConn,
 	}
 
 	r.Get("/", h.healthCheckHandler)

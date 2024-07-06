@@ -93,8 +93,7 @@ func TestGetBlock(t *testing.T) {
 	mockDB.On("GetBlockByNumber", uint64(1)).Return(mockBlocks[0], nil)
 
 	handlers := &Handlers{
-		dbConn:    mockDB,
-		ethClient: nil,
+		dbConn: mockDB,
 	}
 
 	r := chi.NewRouter()
@@ -121,8 +120,7 @@ func TestGetBlocks(t *testing.T) {
 	mockDB.On("GetBlocks").Return([]*data.Block{&mockBlocks[0], &mockBlocks[1]}, nil)
 
 	handlers := &Handlers{
-		dbConn:    mockDB,
-		ethClient: nil,
+		dbConn: mockDB,
 	}
 
 	r := chi.NewRouter()
