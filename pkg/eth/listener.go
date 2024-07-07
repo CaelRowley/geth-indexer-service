@@ -23,16 +23,9 @@ func (c EthClient) StartListener(ctx context.Context, dbConn db.DB) error {
 		case err := <-sub.Err():
 			return fmt.Errorf("subscription error: %w", err) // TODO: add retry logic
 		case header := <-headerCh:
-			header.Hash()
-			_, err := c.processHeader(ctx, header)
-			if err != nil {
+			if err := c.handleHeader(ctx, header); err != nil {
 				slog.Error("failed to process header", "err", err)
 			}
-			// for _, tx := range block.Transactions() {
-			// 	if err := c.handleTx(ctx, tx, block.Hash()); err != nil {
-			// 		slog.Error("failed to process tx", "err", err)
-			// 	}
-			// }
 		case <-ctx.Done():
 			slog.Info("eth listener stopped")
 			return nil
@@ -40,13 +33,16 @@ func (c EthClient) StartListener(ctx context.Context, dbConn db.DB) error {
 	}
 }
 
-func (c EthClient) processHeader(ctx context.Context, header *types.Header) (*types.Block, error) {
+func (c EthClient) handleHeader(ctx context.Context, header *types.Header) error {
 	block, err := c.BlockByHash(ctx, header.Hash())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if err = c.publishBlock(block); err != nil {
-		return nil, err
+		return err
 	}
-	return block, nil
+	if err := c.publishTxs(ctx, block.Transactions(), block.Hash()); err != nil {
+		return err
+	}
+	return nil
 }

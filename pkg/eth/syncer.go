@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
-	"github.com/ethereum/go-ethereum/core/types"
 	"gorm.io/gorm"
 )
 
@@ -35,32 +34,28 @@ func (c EthClient) StartSyncer(ctx context.Context, dbConn db.DB) error {
 			slog.Info("eth syncer stopped")
 			return nil
 		default:
-			_, err := c.handleBlock(ctx, new(big.Int).SetUint64(nextBlockNumber))
-			if err != nil {
+			if err := c.handleBlock(ctx, nextBlockNumber); err != nil {
 				slog.Error("syncer failed to publish block", "err", err)
 				time.Sleep(time.Millisecond * 100)
 				continue
 			}
-			// for _, tx := range block.Transactions() {
-			// 	if err := c.handleTx(ctx, tx, block.Hash()); err != nil {
-			// 		slog.Error("syncer failed to publish tx", "err", err)
-			// 		continue
-			// 	}
-			// }
-
 			nextBlockNumber -= 1
 		}
 	}
 	return nil
 }
 
-func (c EthClient) handleBlock(ctx context.Context, number *big.Int) (*types.Block, error) {
-	block, err := c.BlockByNumber(ctx, number)
+func (c EthClient) handleBlock(ctx context.Context, number uint64) error {
+	bigNumber := new(big.Int).SetUint64(number)
+	block, err := c.BlockByNumber(ctx, bigNumber)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if err = c.publishBlock(block); err != nil {
-		return nil, err
+		return err
 	}
-	return block, nil
+	if err := c.publishTxs(ctx, block.Transactions(), block.Hash()); err != nil {
+		return err
+	}
+	return nil
 }
