@@ -31,6 +31,10 @@ func Init(dbConn db.DB, r *chi.Mux) {
 		r.Get("/get-block/{number}", makeHandler(h.GetBlock))
 		r.Get("/get-blocks", makeHandler(h.GetBlocks))
 	})
+	r.Route("/tx", func(r chi.Router) {
+		r.Get("/get-tx/{hash}", makeHandler(h.GetTx))
+		r.Get("/get-txs", makeHandler(h.GetTxs))
+	})
 }
 
 func makeHandler(h HandlerFunc) http.HandlerFunc {

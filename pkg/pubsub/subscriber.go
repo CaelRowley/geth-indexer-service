@@ -97,9 +97,9 @@ func (c *KafkaConsumer) handleTx(m *kafka.Message) error {
 	if err := json.Unmarshal(m.Value, &tx); err != nil {
 		return fmt.Errorf("failed to unmarshal tx data: %w", err)
 	}
-
-	fmt.Printf("%+v\n", tx)
-
+	if err := c.dbConn.InsertTx(tx); err != nil {
+		return fmt.Errorf("failed to store tx in db: %w", err)
+	}
 	if _, err := c.Consumer.StoreMessage(m); err != nil {
 		return fmt.Errorf("failed to store kafka offset after message: %w", err)
 	}

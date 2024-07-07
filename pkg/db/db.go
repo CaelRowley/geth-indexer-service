@@ -13,6 +13,9 @@ type DB interface {
 	GetBlockByNumber(uint64) (*data.Block, error)
 	GetFirstBlock() (*data.Block, error)
 	GetBlocks() ([]*data.Block, error)
+	InsertTx(data.Transaction) error
+	GetTxByHash(string) (*data.Transaction, error)
+	GetTxs() ([]*data.Transaction, error)
 	Close() error
 }
 
