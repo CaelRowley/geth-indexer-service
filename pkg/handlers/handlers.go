@@ -27,7 +27,6 @@ func Init(dbConn db.DB, r *chi.Mux) {
 	}
 
 	r.Get("/", h.healthCheckHandler)
-
 	r.Route("/block", func(r chi.Router) {
 		r.Get("/get-block/{number}", makeHandler(h.GetBlock))
 		r.Get("/get-blocks", makeHandler(h.GetBlocks))
@@ -56,11 +55,9 @@ func setJSONResponse(w http.ResponseWriter, code int, v any) error {
 	if err != nil {
 		return err
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(data)
-
 	return nil
 }
 

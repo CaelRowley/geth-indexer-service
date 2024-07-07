@@ -1,7 +1,7 @@
 .PHONY: all clean build run db dev dev-sync test
 BINARY_NAME=main
 
-all: clean build
+all: clean build test
 
 clean:
 	rm -f ${BINARY_NAME}
@@ -13,9 +13,14 @@ run: build
 	./${BINARY_NAME}
 
 db:
-	docker-compose -f docker-compose.yml up -d db
+	docker-compose -f docker-compose.yml up db zookeeper broker
 
-dev: db
+db-down:
+		docker-compose -f docker-compose.yml down
+
+db-restart: db-down db
+
+dev:
 	@go run github.com/air-verse/air@v1.52.3 \
 	--build.cmd "go build --tags dev -o tmp/bin/${BINARY_NAME} ./cmd/" --build.bin "tmp/bin/${BINARY_NAME}" --build.delay "100" \
 	--build.include_ext "go" \
@@ -24,7 +29,7 @@ dev: db
 	--screen.clear_on_rebuild true \
 	--log.main_only true
 
-dev-sync: db
+dev-sync:
 	@go run github.com/air-verse/air@v1.52.3 \
 	--build.cmd "go build --tags dev -o tmp/bin/${BINARY_NAME} ./cmd/" --build.bin "tmp/bin/${BINARY_NAME}" --build.delay "100" \
 	--build.include_ext "go" \

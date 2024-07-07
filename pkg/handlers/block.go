@@ -13,12 +13,10 @@ func (h *Handlers) GetBlock(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return InvalidURLParam(fmt.Errorf("number: %w", err))
 	}
-
 	block, err := h.dbConn.GetBlockByNumber(number)
 	if err != nil {
 		return fmt.Errorf("failed to get block: %w", err)
 	}
-
 	return setJSONResponse(w, http.StatusOK, block)
 }
 
@@ -27,6 +25,5 @@ func (h *Handlers) GetBlocks(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("failed to get blocks: %w", err)
 	}
-
 	return setJSONResponse(w, http.StatusOK, blocks)
 }

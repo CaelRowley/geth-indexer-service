@@ -8,6 +8,7 @@ import (
 
 var (
 	blocksTopic = "blocks"
+	txsTopic    = "transactions"
 )
 
 type PubSub interface {

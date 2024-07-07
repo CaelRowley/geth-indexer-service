@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/data"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -14,10 +13,10 @@ func (c EthClient) publishBlock(block *types.Block) error {
 		Number:      block.Number().Uint64(),
 		GasLimit:    block.GasLimit(),
 		GasUsed:     block.GasUsed(),
-		Difficulty:  block.Difficulty().String(),
+		Difficulty:  block.Difficulty().Uint64(),
 		Time:        block.Time(),
 		ParentHash:  block.ParentHash().Hex(),
-		Nonce:       hexutil.EncodeUint64(block.Nonce()),
+		Nonce:       block.Nonce(),
 		Miner:       block.Coinbase().Hex(),
 		Size:        block.Size(),
 		RootHash:    block.Root().Hex(),

@@ -32,13 +32,15 @@ func NewSubscriber(url string, dbConn db.DB) (Subscriber, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if err := c.SubscribeTopics([]string{blocksTopic, txsTopic}, nil); err != nil {
+		return nil, fmt.Errorf("failed to subscribe to kafka topics: %w", err)
+	}
+
 	return &KafkaConsumer{c, dbConn}, nil
 }
 
 func (c *KafkaConsumer) StartPoll(ctx context.Context) error {
-	if err := c.Consumer.SubscribeTopics([]string{blocksTopic}, nil); err != nil {
-		return fmt.Errorf("failed to subscribe to kafka topics: %w", err)
-	}
 	for {
 		select {
 		case <-ctx.Done():
@@ -56,7 +58,13 @@ func (c *KafkaConsumer) StartPoll(ctx context.Context) error {
 						slog.Error("failed to consume block message", "err", err)
 					}
 				}
+				if *e.TopicPartition.Topic == txsTopic {
+					if err := c.handleTx(e); err != nil {
+						slog.Error("failed to consume tx message", "err", err)
+					}
+				}
 			case kafka.Error:
+				fmt.Println(e)
 				slog.Error("kafka subscription failed", "code", e.Code(), "err", e.Error())
 				if e.Code() == kafka.ErrAllBrokersDown {
 					break
@@ -78,6 +86,20 @@ func (c *KafkaConsumer) handleBlock(m *kafka.Message) error {
 	if err := c.dbConn.InsertBlock(block); err != nil {
 		return fmt.Errorf("failed to store block in db: %w", err)
 	}
+	if _, err := c.Consumer.StoreMessage(m); err != nil {
+		return fmt.Errorf("failed to store kafka offset after message: %w", err)
+	}
+	return nil
+}
+
+func (c *KafkaConsumer) handleTx(m *kafka.Message) error {
+	var tx data.Transaction
+	if err := json.Unmarshal(m.Value, &tx); err != nil {
+		return fmt.Errorf("failed to unmarshal tx data: %w", err)
+	}
+
+	fmt.Printf("%+v\n", tx)
+
 	if _, err := c.Consumer.StoreMessage(m); err != nil {
 		return fmt.Errorf("failed to store kafka offset after message: %w", err)
 	}

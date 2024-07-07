@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/CaelRowley/geth-indexer-service/pkg/db"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/ethereum/go-ethereum/core/types"
 	"gorm.io/gorm"
 )
 
@@ -35,23 +35,32 @@ func (c EthClient) StartSyncer(ctx context.Context, dbConn db.DB) error {
 			slog.Info("eth syncer stopped")
 			return nil
 		default:
-			block, err := c.BlockByNumber(context.Background(), new(big.Int).SetUint64(nextBlockNumber))
+			_, err := c.handleBlock(ctx, new(big.Int).SetUint64(nextBlockNumber))
 			if err != nil {
-				slog.Error("syncer failed to get block", "number", nextBlockNumber, "err", err)
-				time.Sleep(100 * time.Millisecond)
+				slog.Error("syncer failed to publish block", "err", err)
+				time.Sleep(time.Millisecond * 100)
 				continue
 			}
-			if err = c.publishBlock(block); err != nil {
-				if err.(kafka.Error).Code() == kafka.ErrQueueFull {
-					time.Sleep(time.Second)
-					continue
-				}
-				slog.Error("syncer failed to publish block", "number", nextBlockNumber, "err", err)
-				time.Sleep(100 * time.Millisecond)
-				continue
-			}
+			// for _, tx := range block.Transactions() {
+			// 	if err := c.handleTx(ctx, tx, block.Hash()); err != nil {
+			// 		slog.Error("syncer failed to publish tx", "err", err)
+			// 		continue
+			// 	}
+			// }
+
 			nextBlockNumber -= 1
 		}
 	}
 	return nil
+}
+
+func (c EthClient) handleBlock(ctx context.Context, number *big.Int) (*types.Block, error) {
+	block, err := c.BlockByNumber(ctx, number)
+	if err != nil {
+		return nil, err
+	}
+	if err = c.publishBlock(block); err != nil {
+		return nil, err
+	}
+	return block, nil
 }

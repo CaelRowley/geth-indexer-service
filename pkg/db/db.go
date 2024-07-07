@@ -49,5 +49,9 @@ func runMigrations(g *gorm.DB) error {
 	if err != nil {
 		return fmt.Errorf("failed to run migration: %w", err)
 	}
+	err = g.AutoMigrate(&data.Transaction{})
+	if err != nil {
+		return fmt.Errorf("failed to run migration: %w", err)
+	}
 	return nil
 }

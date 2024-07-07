@@ -24,9 +24,15 @@ func (c EthClient) StartListener(ctx context.Context, dbConn db.DB) error {
 			return fmt.Errorf("subscription error: %w", err) // TODO: add retry logic
 		case header := <-headerCh:
 			header.Hash()
-			if err := c.processHeader(ctx, header); err != nil {
+			_, err := c.processHeader(ctx, header)
+			if err != nil {
 				slog.Error("failed to process header", "err", err)
 			}
+			// for _, tx := range block.Transactions() {
+			// 	if err := c.handleTx(ctx, tx, block.Hash()); err != nil {
+			// 		slog.Error("failed to process tx", "err", err)
+			// 	}
+			// }
 		case <-ctx.Done():
 			slog.Info("eth listener stopped")
 			return nil
@@ -34,10 +40,13 @@ func (c EthClient) StartListener(ctx context.Context, dbConn db.DB) error {
 	}
 }
 
-func (c EthClient) processHeader(ctx context.Context, header *types.Header) error {
+func (c EthClient) processHeader(ctx context.Context, header *types.Header) (*types.Block, error) {
 	block, err := c.BlockByHash(ctx, header.Hash())
 	if err != nil {
-		return fmt.Errorf("failed to get block by hash %s: %w", header.Hash().Hex(), err)
+		return nil, err
 	}
-	return c.publishBlock(block)
+	if err = c.publishBlock(block); err != nil {
+		return nil, err
+	}
+	return block, nil
 }
