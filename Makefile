@@ -1,4 +1,4 @@
-.PHONY: all clean build run db dev dev-sync test
+.PHONY: all clean build run db db-down dev dev-sync seed test
 BINARY_NAME=main
 
 all: clean build test
@@ -12,13 +12,11 @@ build:
 run: build
 	./${BINARY_NAME}
 
-db:
+db:  db-down
 	docker-compose -f docker-compose.yml up db zookeeper broker
 
 db-down:
 		docker-compose -f docker-compose.yml down
-
-db-restart: db-down db
 
 dev:
 	@go run github.com/air-verse/air@v1.52.3 \
@@ -38,6 +36,9 @@ dev-sync:
 	--screen.clear_on_rebuild true \
 	--log.main_only true \
  	-- -sync
+
+seed:
+	@go run ./cmd/seed/main.go
 
 test:
 	go test ./... -count=1

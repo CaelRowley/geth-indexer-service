@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/CaelRowley/geth-indexer-service/cmd/server"
+	"github.com/CaelRowley/geth-indexer-service/pkg/server"
 	"github.com/joho/godotenv"
 )
 
