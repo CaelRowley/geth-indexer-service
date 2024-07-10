@@ -45,6 +45,25 @@ func (m *MockDB) GetBlocks() ([]*data.Block, error) {
 	return args.Get(0).([]*data.Block), args.Error(1)
 }
 
+func (m *MockDB) InsertTx(tx data.Transaction) error {
+	args := m.Called(tx)
+	return args.Error(0)
+}
+
+func (m *MockDB) GetTxByHash(hash string) (*data.Transaction, error) {
+	args := m.Called(hash)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	block := args.Get(0).(data.Transaction)
+	return &block, args.Error(1)
+}
+
+func (m *MockDB) GetTxs() ([]*data.Transaction, error) {
+	args := m.Called()
+	return args.Get(0).([]*data.Transaction), args.Error(1)
+}
+
 func (m *MockDB) Close() error {
 	args := m.Called()
 	return args.Error(0)
@@ -52,24 +71,24 @@ func (m *MockDB) Close() error {
 
 var mockBlocks = []data.Block{
 	{
-		Hash:        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+		Hash:        "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
 		Number:      1,
 		GasLimit:    1000000,
 		GasUsed:     500000,
 		Difficulty:  1000000000,
 		Time:        1625812800,
-		ParentHash:  "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+		ParentHash:  "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
 		Nonce:       0,
 		Miner:       "0x0000000000000000000000000000000000000001",
 		Size:        200,
-		RootHash:    "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-		UncleHash:   "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-		TxHash:      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-		ReceiptHash: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+		RootHash:    "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+		UncleHash:   "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+		TxHash:      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+		ReceiptHash: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
 		ExtraData:   []byte("some extra data"),
 	},
 	{
-		Hash:        "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+		Hash:        "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
 		Number:      2,
 		GasLimit:    2000000,
 		GasUsed:     1000000,
@@ -79,10 +98,10 @@ var mockBlocks = []data.Block{
 		Nonce:       0,
 		Miner:       "0x0000000000000000000000000000000000000002",
 		Size:        400,
-		RootHash:    "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-		UncleHash:   "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-		TxHash:      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-		ReceiptHash: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+		RootHash:    "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+		UncleHash:   "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+		TxHash:      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+		ReceiptHash: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
 		ExtraData:   []byte("some more extra data"),
 	},
 }

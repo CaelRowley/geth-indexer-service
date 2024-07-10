@@ -47,6 +47,7 @@ func TestRunMigrations(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 	sqlMock.ExpectExec(`^CREATE TABLE "blocks"`).WillReturnResult(sqlmock.NewResult(0, 1))
 	sqlMock.ExpectExec(`^CREATE INDEX IF NOT EXISTS "idx_blocks_number" ON "blocks" \("number" asc\)`).WillReturnResult(sqlmock.NewResult(0, 1))
+	sqlMock.ExpectExec(`^CREATE TABLE "transactions" \("hash" char\(66\),"from" char\(42\) NOT NULL,"to" char\(42\),"contract" char\(66\) NOT NULL,"value" numeric NOT NULL,"data" bytea NOT NULL,"gas" numeric NOT NULL,"gas_price" numeric NOT NULL,"cost" numeric NOT NULL,"nonce" numeric NOT NULL,"status" numeric NOT NULL,"block_hash" char\(66\) NOT NULL,PRIMARY KEY \("hash"\)\)$`).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err = runMigrations(gormDB)
 	assert.NoError(t, err)
