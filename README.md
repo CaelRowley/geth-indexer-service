@@ -38,7 +38,6 @@ docker-compose -f docker-compose.yml up
 
 `blocks` table:
 
-
 | Column        | Type      | Key       | Description                                                                            |
 |---------------|-----------|-----------|----------------------------------------------------------------------------------------|
 | hash          | char(66)  | Primary   | The hash of the block header.                                                          |
@@ -56,3 +55,21 @@ docker-compose -f docker-compose.yml up
 | tx_hash       | char(66)  |           | Hash of all transaction hashes in this block.                                          |
 | receipt_hash  | char(66)  |           | Hash of the receipts of all transactions in this block.                                |
 | extra_data    | bytea     |           | Additional binary data associated with the block.                                      |
+
+`transcations` table:
+
+| Column      | Type     | Key       | Description                                                |
+|-------------|----------|-----------|------------------------------------------------------------|
+| hash        | char(66) | Primary   | The hash of the transaction hash ID.                       |
+| from        | char(42) |           | The address of the sender.                                 |
+| to          | char(42) |           | The receiving address.                                     |
+| contract    | char(66) |           | The contract address.                                      |
+| value       | numeric  |           | Amount of ETH to transfer from sender to recipient.        |
+| data        | bytea    |           | Optional field to include arbitrary data.                  |
+| gas         | numeric  |           | The gas limit of the transaction.                          |
+| gas_price   | numeric  |           | The gas price of the transaction.                          |
+| cost        | numeric  |           | (gas * gasPrice) + (blobGas * blobGasPrice) + value.       |
+| nonce       | numeric  |           | The sender account nonce of the transaction.               |
+| status      | numeric  |           | The execution status of the transaction.                   |
+| block_hash  | char(66) |           | Hash of the block that includes this transaction.          |
+
