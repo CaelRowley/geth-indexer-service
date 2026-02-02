@@ -74,22 +74,22 @@ func (s *Server) Start(ctx context.Context) error {
 
 	if s.sync {
 		slog.Info("starting sync with eth node...")
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			if err := s.ethClient.StartListener(ctx, s.dbConn); err != nil {
 				errCh <- fmt.Errorf("listener failed: %w", err)
 			}
 		}()
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			if err := s.ethClient.StartSyncer(ctx, s.dbConn); err != nil {
 				errCh <- fmt.Errorf("syncer failed: %w", err)
 			}
 		}()
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			if err := s.pubsub.GetSubscriber().StartPoll(ctx); err != nil {
 				errCh <- fmt.Errorf("consumer failed: %w", err)

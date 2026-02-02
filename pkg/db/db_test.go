@@ -41,6 +41,7 @@ func TestRunMigrations(t *testing.T) {
 		PreferSimpleProtocol: true,
 	})
 	gormDB, err := gorm.Open(dialector, &gorm.Config{})
+	assert.NoError(t, err)
 
 	sqlMock.ExpectQuery(`^SELECT count\(\*\) FROM information_schema\.tables WHERE table_schema = CURRENT_SCHEMA\(\) AND table_name = \$1 AND table_type = \$2$`).
 		WithArgs("blocks", "BASE TABLE").
