@@ -45,7 +45,7 @@ func TestMakeHandlerErr(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
-	expected := `{"statusCode":500,"msg":"interal server error"}`
+	expected := `{"statusCode":500,"msg":"internal server error"}`
 	assert.JSONEq(t, expected, rr.Body.String())
 }
 
@@ -71,7 +71,7 @@ func TestSetJSONResponse(t *testing.T) {
 
 	expected, _ := json.Marshal(data)
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, string(expected), string(rr.Body.Bytes()))
+	assert.Equal(t, string(expected), rr.Body.String())
 	assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
 }
 
