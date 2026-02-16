@@ -23,7 +23,7 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           use_sticky_comment: false
-          direct_prompt: |
+          prompt: |
             Analyze all the changes in this PR by running `gh pr diff ${{ github.event.pull_request.number }}`.
 
             Then generate a clear, well-structured PR description and update the PR with it using:
