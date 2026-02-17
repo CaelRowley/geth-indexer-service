@@ -86,9 +86,87 @@ jobs:
 
 
               Feedback Guidelines
-             	•	Use inline comments for file- or line-specific issues and improvements.
+             	•	Use inline PR review comments for file- or line-specific issues and improvements.
              	•	Use top-level comments for architectural observations, general patterns, or praise.
              	•	Prioritize clarity, robustness, and production readiness in all feedback.
+
+              Inline Comment Format
+              When leaving inline comments on specific lines, use this exact format:
+
+              1. A bold title summarizing the issue.
+              2. A paragraph explaining the problem and rationale.
+              3. A ```suggestion code block containing the corrected line(s). This enables GitHub's one-click "Apply suggestion" feature.
+              4. A collapsible "Prompt To Fix With AI" section so the developer can paste it into an AI assistant.
+
+              Here is the exact template for each inline comment:
+
+              **Issue Title**
+
+              Explanation of the problem, why it matters, and any additional context.
+
+              ```suggestion
+              corrected code here
+              ```
+
+              <details><summary>Prompt To Fix With AI</summary>
+
+              `````markdown
+              This is a comment left during a code review.
+              Path: <file path>
+              Line: <start_line>:<end_line>
+
+              Comment:
+              **Issue Title**
+
+              Explanation of the problem (same as above).
+
+              ```suggestion
+              corrected code here
+              ```
+
+              How can I resolve this? If you propose a fix, please make it concise.
+              `````
+              </details>
+
+              Output Formatting
+              Format each of the 6 review sections in the top-level summary as a collapsible dropdown using GitHub-flavored HTML.
+              Use this exact structure for each section:
+
+              <details>
+              <summary><strong>Section Title</strong> - brief one-line summary of findings</summary>
+
+              (detailed findings here in markdown)
+
+              </details>
+
+              If a section has no findings, still include the dropdown but note "No issues found." inside it.
+              Place a blank line between each dropdown section for proper rendering.
+
+              Finding Separation
+              Within each section (both top-level dropdowns and inline comments), separate individual findings clearly:
+              •	Use a horizontal rule (---) between each distinct finding.
+              •	Give each finding its own bold title as a header.
+              •	Keep a blank line before and after each horizontal rule for proper markdown rendering.
+
+              Example structure inside a dropdown:
+
+              **Finding Title 1**
+
+              Description of the first issue.
+
+              ---
+
+              **Finding Title 2**
+
+              Description of the second issue.
+
+              ---
+
+              **Finding Title 3**
+
+              Description of the third issue.
+
+              Do NOT run findings together as continuous paragraphs. Each issue must be visually distinct and scannable.
 
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://docs.anthropic.com/en/docs/claude-code/sdk#command-line for available options
