@@ -1,7 +1,6 @@
 package pubsub
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -49,7 +48,7 @@ func (p *KafkaProducer) PublishBlock(blockData []byte) error {
 }
 
 func (p *KafkaProducer) PublishTx(txData []byte) error {
-	fmt.Println("publishing transaction")
+	slog.Debug("publishing transaction")
 	err := p.Producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &txsTopic, Partition: kafka.PartitionAny},
 		Value:          txData,

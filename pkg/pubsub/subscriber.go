@@ -34,7 +34,8 @@ func NewSubscriber(url string, dbConn db.DB) (Subscriber, error) {
 	}
 
 	if err := c.SubscribeTopics([]string{blocksTopic, txsTopic}, nil); err != nil {
-		return nil, fmt.Errorf("failed to subscribe to kafka topics: %w", err)
+		c.Close()
+		return nil, err
 	}
 
 	return &KafkaConsumer{c, dbConn}, nil
@@ -64,7 +65,6 @@ func (c *KafkaConsumer) StartPoll(ctx context.Context) error {
 					}
 				}
 			case kafka.Error:
-				fmt.Println(e)
 				slog.Error("kafka subscription failed", "code", e.Code(), "err", e.Error())
 				if e.Code() == kafka.ErrAllBrokersDown {
 					break

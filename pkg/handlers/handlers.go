@@ -45,7 +45,7 @@ func makeHandler(h HandlerFunc) http.HandlerFunc {
 			} else {
 				errResp := map[string]any{
 					"statusCode": http.StatusInternalServerError,
-					"msg":        "interal server error",
+					"msg":        "internal server error",
 				}
 				setJSONResponse(w, http.StatusInternalServerError, errResp)
 			}
