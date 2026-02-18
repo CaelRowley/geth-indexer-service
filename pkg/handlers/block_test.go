@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -104,6 +105,69 @@ var mockBlocks = []data.Block{
 		ReceiptHash: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
 		ExtraData:   []byte("some more extra data"),
 	},
+}
+
+func TestGetBlockInvalidNumber(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	mockDB := new(MockDB)
+
+	handlers := &Handlers{
+		dbConn: mockDB,
+	}
+
+	r := chi.NewRouter()
+	r.Get("/get-block/{number}", makeHandler(handlers.GetBlock))
+
+	req, err := http.NewRequest("GET", "/get-block/notanumber", nil)
+	assert.NoError(t, err)
+
+	r.ServeHTTP(recorder, req)
+
+	assert.Equal(t, http.StatusBadRequest, recorder.Code)
+}
+
+func TestGetBlockDBError(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	mockDB := new(MockDB)
+	mockDB.On("GetBlockByNumber", uint64(999)).Return(nil, fmt.Errorf("record not found"))
+
+	handlers := &Handlers{
+		dbConn: mockDB,
+	}
+
+	r := chi.NewRouter()
+	r.Get("/get-block/{number}", makeHandler(handlers.GetBlock))
+
+	req, err := http.NewRequest("GET", "/get-block/999", nil)
+	assert.NoError(t, err)
+
+	r.ServeHTTP(recorder, req)
+
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+
+	mockDB.AssertExpectations(t)
+}
+
+func TestGetBlocksDBError(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	mockDB := new(MockDB)
+	mockDB.On("GetBlocks").Return([]*data.Block(nil), fmt.Errorf("db connection error"))
+
+	handlers := &Handlers{
+		dbConn: mockDB,
+	}
+
+	r := chi.NewRouter()
+	r.Get("/get-blocks", makeHandler(handlers.GetBlocks))
+
+	req, err := http.NewRequest("GET", "/get-blocks", nil)
+	assert.NoError(t, err)
+
+	r.ServeHTTP(recorder, req)
+
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+
+	mockDB.AssertExpectations(t)
 }
 
 func TestGetBlock(t *testing.T) {

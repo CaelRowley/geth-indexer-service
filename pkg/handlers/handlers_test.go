@@ -71,7 +71,7 @@ func TestSetJSONResponse(t *testing.T) {
 
 	expected, _ := json.Marshal(data)
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, string(expected), string(rr.Body.Bytes()))
+	assert.Equal(t, string(expected), rr.Body.String())
 	assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
 }
 
