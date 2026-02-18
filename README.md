@@ -8,7 +8,7 @@ A work-in-progress EVM indexer and block explorer written in Go. The project aim
 
 - **NODE_URL**: _WebSocket connection to Ethereum node._
 
-- **MSG_BROKER_URL**: _The url to a Kafka broker_
+- **MSG_BROKER_URL**: _The URL to a Kafka broker_
 
 ## Flags
 
